@@ -15,7 +15,7 @@ import Historical from './pages/Historical';
 import RoleViews from './pages/RoleViews';
 import DeviceHealth from './pages/DeviceHealth';
 import Roadmap from './pages/Roadmap';
-import AppLayout from './components/layout/AppLayout';
+import AppLayout from './layout/AppLayout';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
