@@ -10,7 +10,7 @@ import {
   Wifi,
   Gauge
 } from "lucide-react";
-import { connectESP32, startReading } from "@/utils/bluetooth";
+import { connectESP32, startReading } from "../../utils/bluetooth";
 
 export default function SummaryCards() {
   const [summaryData, setSummaryData] = useState({
