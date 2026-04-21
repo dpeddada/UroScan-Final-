@@ -1,24 +1,61 @@
-let device, server, service, characteristic;
+let device = null;
+let server = null;
+let service = null;
+let txCharacteristic = null;
 
-const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
-const CHARACTERISTIC_UUID = "abcdefab-1234-1234-1234-abcdefabcdef";
+const SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+const RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+const TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+
+function parseDataLine(line) {
+  if (!line || !line.startsWith("DATA,")) return null;
+
+  const payload = line.slice(5);
+  const parts = payload.split(",");
+  const result = {};
+
+  for (const part of parts) {
+    const eqIndex = part.indexOf("=");
+    if (eqIndex === -1) continue;
+
+    const key = part.slice(0, eqIndex).trim();
+    const value = part.slice(eqIndex + 1).trim();
+    result[key] = value;
+  }
+
+  return result;
+}
 
 export async function connectESP32() {
   device = await navigator.bluetooth.requestDevice({
-    acceptAllDevices: true,
-    optionalServices: [SERVICE_UUID]
+    filters: [{ namePrefix: "UroScale" }],
+    optionalServices: [SERVICE_UUID],
   });
 
   server = await device.gatt.connect();
   service = await server.getPrimaryService(SERVICE_UUID);
-  characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+  txCharacteristic = await service.getCharacteristic(TX_CHAR_UUID);
+
+  return device;
 }
 
-export async function startReading(setData) {
-  await characteristic.startNotifications();
+export async function startReading(onParsedData) {
+  if (!txCharacteristic) {
+    throw new Error("Bluetooth device not connected.");
+  }
 
-  characteristic.addEventListener("characteristicvaluechanged", (event) => {
-    const value = new TextDecoder().decode(event.target.value);
-    setData(value);
+  await txCharacteristic.startNotifications();
+
+  txCharacteristic.addEventListener("characteristicvaluechanged", (event) => {
+    const value = event.target.value;
+    const text = new TextDecoder().decode(value).trim();
+
+    const lines = text.split("\n");
+    for (const line of lines) {
+      const parsed = parseDataLine(line.trim());
+      if (parsed) {
+        onParsedData(parsed);
+      }
+    }
   });
 }
