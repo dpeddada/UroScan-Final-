@@ -4,7 +4,7 @@ import FlowStateChart from "../components/dashboard/FlowStateChart";
 import TurbidityChart from "../components/dashboard/TurbidityChart";
 import FlowVisualizer from "../monitoring/FlowVisualizer";
 import SensorReadings from "../monitoring/SensorReadings";
-import EventLog from "../components/monitoring/EventLog";
+import EventLog from "../monitoring/EventLog";
 import { Card } from "../components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
