@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+    --background: 210 20% 98%;
+    --foreground: 215 25% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 12%;
+    --primary: 210 70% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 175 42% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 15% 93%;
+    --muted-foreground: 215 12% 50%;
+    --accent: 175 42% 46%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 15% 88%;
+    --input: 210 15% 88%;
+    --ring: 210 70% 32%;
+    --chart-1: 210 70% 45%;
+    --chart-2: 175 55% 42%;
+    --chart-3: 45 93% 47%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 262 52% 47%;
+    --radius: 0.625rem;
+    --sidebar-background: 215 30% 16%;
+    --sidebar-foreground: 210 15% 90%;
+    --sidebar-primary: 175 55% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 25% 22%;
+    --sidebar-accent-foreground: 210 15% 90%;
+    --sidebar-border: 215 20% 24%;
+    --sidebar-ring: 175 55% 50%;
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 70% 50%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 215 30% 10%;
+    --foreground: 210 15% 93%;
+    --card: 215 28% 14%;
+    --card-foreground: 210 15% 93%;
+    --popover: 215 28% 14%;
+    --popover-foreground: 210 15% 93%;
+    --primary: 210 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 175 42% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 215 20% 20%;
+    --muted-foreground: 210 10% 55%;
+    --accent: 175 42% 46%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 20% 22%;
+    --input: 215 20% 22%;
+    --ring: 210 70% 50%;
+    --chart-1: 210 70% 55%;
+    --chart-2: 175 55% 50%;
+    --chart-3: 45 93% 55%;
+    --chart-4: 0 72% 55%;
+    --chart-5: 262 52% 55%;
+    --sidebar-background: 215 35% 10%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-prim
