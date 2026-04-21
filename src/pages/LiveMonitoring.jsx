@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import LiveVolumeChart from "@/components/dashboard/LiveVolumeChart";
-import FlowStateChart from "@/components/dashboard/FlowStateChart";
-import TurbidityChart from "@/components/dashboard/TurbidityChart";
-import FlowVisualizer from "@/components/monitoring/FlowVisualizer";
-import SensorReadings from "@/components/monitoring/SensorReadings";
-import EventLog from "@/components/monitoring/EventLog";
-import { Card } from "@/components/ui/card";
+import LiveVolumeChart from "../components/dashboard/LiveVolumeChart";
+import FlowStateChart from "../components/dashboard/FlowStateChart";
+import TurbidityChart from "../components/dashboard/TurbidityChart";
+import FlowVisualizer from "../components/monitoring/FlowVisualizer";
+import SensorReadings from "../components/monitoring/SensorReadings";
+import EventLog from "../components/monitoring/EventLog";
+import { Card } from "../components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 function ColorTrendChart() {
