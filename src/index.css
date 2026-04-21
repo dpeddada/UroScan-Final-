@@ -75,4 +75,60 @@
     --chart-5: 262 52% 55%;
     --sidebar-background: 215 35% 10%;
     --sidebar-foreground: 210 15% 85%;
-    --sidebar-prim
+    --sidebar-primary: 175 55% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 30% 16%;
+    --sidebar-accent-foreground: 210 15% 85%;
+    --sidebar-border: 215 25% 18%;
+    --sidebar-ring: 175 55% 50%;
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 210 70% 55%;
+    --info-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Pulse animation for live indicators */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-live-pulse {
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes flowAnimation {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.animate-flow {
+  background: linear-gradient(90deg, hsl(175 55% 50% / 0.1), hsl(175 55% 50% / 0.4), hsl(175 55% 50% / 0.1));
+  background-size: 200% 100%;
+  animation: flowAnimation 2s linear infinite;
+}
