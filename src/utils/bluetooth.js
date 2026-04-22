@@ -27,6 +27,8 @@ function parseDataLine(line) {
 
 export async function connectESP32() {
   try {
+    alert("NEW LOWERCASE BLUETOOTH FILE LOADED");
+
     if (!navigator.bluetooth) {
       throw new Error("Web Bluetooth is not supported in this browser.");
     }
@@ -60,6 +62,7 @@ export async function startReading(onParsedData) {
       const text = new TextDecoder().decode(value).trim();
 
       const lines = text.split("\n");
+
       for (const line of lines) {
         const parsed = parseDataLine(line.trim());
         if (parsed) {
