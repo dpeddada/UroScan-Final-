@@ -28,28 +28,22 @@ function parseDataLine(line) {
 export async function connectESP32() {
   try {
     if (!navigator.bluetooth) {
-      alert("Web Bluetooth is not supported in this browser.");
-      throw new Error("Web Bluetooth not supported");
+      throw new Error("Web Bluetooth is not supported in this browser.");
     }
 
-    alert("Opening Bluetooth device picker...");
-
     device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
+      filters: [{ namePrefix: "UroScale" }],
       optionalServices: [SERVICE_UUID],
     });
-
-    alert(`Selected device: ${device.name || "Unknown device"}`);
 
     server = await device.gatt.connect();
     service = await server.getPrimaryService(SERVICE_UUID);
     txCharacteristic = await service.getCharacteristic(TX_CHAR_UUID);
 
-    alert("Connected successfully.");
+    console.log("Connected to:", device.name || "Unknown device");
     return device;
   } catch (error) {
     console.error("connectESP32 error:", error);
-    alert(`Bluetooth connection error: ${error.message}`);
     throw error;
   }
 }
@@ -57,8 +51,7 @@ export async function connectESP32() {
 export async function startReading(onParsedData) {
   try {
     if (!txCharacteristic) {
-      alert("No Bluetooth characteristic found. Connect first.");
-      throw new Error("Bluetooth device not connected");
+      throw new Error("Bluetooth device not connected.");
     }
 
     await txCharacteristic.startNotifications();
@@ -76,10 +69,9 @@ export async function startReading(onParsedData) {
       }
     });
 
-    alert("Started reading notifications.");
+    console.log("Started reading notifications.");
   } catch (error) {
     console.error("startReading error:", error);
-    alert(`Read error: ${error.message}`);
     throw error;
   }
 }
