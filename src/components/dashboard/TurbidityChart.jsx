@@ -27,7 +27,10 @@ export default function TurbidityChart({ data = [] }) {
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(210 15% 88%)" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsl(210 15% 88%)"
+            />
             <XAxis
               dataKey="time"
               tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
@@ -37,8 +40,21 @@ export default function TurbidityChart({ data = [] }) {
               tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
               domain={[0, "auto"]}
             />
-            <Tooltip formatter={(value) => [`${value} rNTU`, "Turbidity"]} />
-            <ReferenceLine y={100} stroke="hsl(0 65% 55%)" strokeDasharray="3 3" />
+            <Tooltip
+              contentStyle={{
+                fontSize: 11,
+                borderRadius: 8,
+                border: "1px solid hsl(210 15% 88%)",
+                background: "white",
+              }}
+              labelStyle={{ fontWeight: 600 }}
+              formatter={(value) => [`${value} rNTU`, "Turbidity"]}
+            />
+            <ReferenceLine
+              y={100}
+              stroke="hsl(0 65% 55%)"
+              strokeDasharray="3 3"
+            />
             <Line
               type="monotone"
               dataKey="turbidity"
