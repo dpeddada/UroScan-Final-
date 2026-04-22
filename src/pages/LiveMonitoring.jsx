@@ -77,10 +77,7 @@ function ColorTrendChart({ data = [] }) {
                 border: "1px solid hsl(210 15% 88%)",
                 background: "white",
               }}
-              formatter={(value) => [
-                colorLabels[value] || value,
-                "Color",
-              ]}
+              formatter={(value) => [colorLabels[value] || value, "Color"]}
             />
             <Line
               type="stepAfter"
@@ -122,6 +119,7 @@ export default function LiveMonitoring() {
       setDeviceStatus("Connected");
     } catch (error) {
       console.error(error);
+      alert(error.message);
       setDeviceStatus("Failed");
     }
   };
@@ -159,10 +157,7 @@ export default function LiveMonitoring() {
         setDeviceStatus(parsed.status === "OK" ? "Connected" : "Warning");
 
         if (Number.isFinite(volume)) {
-          setVolumeHistory((prev) => [
-            ...prev.slice(-59),
-            { time, volume },
-          ]);
+          setVolumeHistory((prev) => [...prev.slice(-59), { time, volume }]);
         }
 
         setFlowHistory((prev) => [
@@ -186,6 +181,7 @@ export default function LiveMonitoring() {
       });
     } catch (error) {
       console.error(error);
+      alert(error.message);
       setDeviceStatus("Read Failed");
     }
   };
@@ -226,7 +222,9 @@ export default function LiveMonitoring() {
           >
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                isFlowing ? "bg-success animate-live-pulse" : "bg-muted-foreground"
+                isFlowing
+                  ? "bg-success animate-live-pulse"
+                  : "bg-muted-foreground"
               }`}
             />
             <span
