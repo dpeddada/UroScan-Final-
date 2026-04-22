@@ -37,21 +37,8 @@ export default function TurbidityChart({ data = [] }) {
               tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
               domain={[0, "auto"]}
             />
-            <Tooltip
-              contentStyle={{
-                fontSize: 11,
-                borderRadius: 8,
-                border: "1px solid hsl(210 15% 88%)",
-                background: "white",
-              }}
-              labelStyle={{ fontWeight: 600 }}
-              formatter={(value) => [`${value} rNTU`, "Turbidity"]}
-            />
-            <ReferenceLine
-              y={100}
-              stroke="hsl(0 65% 55%)"
-              strokeDasharray="3 3"
-            />
+            <Tooltip formatter={(value) => [`${value} rNTU`, "Turbidity"]} />
+            <ReferenceLine y={100} stroke="hsl(0 65% 55%)" strokeDasharray="3 3" />
             <Line
               type="monotone"
               dataKey="turbidity"
