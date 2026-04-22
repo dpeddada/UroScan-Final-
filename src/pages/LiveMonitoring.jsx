@@ -97,6 +97,8 @@ function ColorTrendChart({ data = [] }) {
 export default function LiveMonitoring() {
   const [isFlowing, setIsFlowing] = useState(false);
   const [deviceStatus, setDeviceStatus] = useState("Disconnected");
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isReading, setIsReading] = useState(false);
 
   const [volumeHistory, setVolumeHistory] = useState([]);
   const [flowHistory, setFlowHistory] = useState([]);
@@ -115,17 +117,23 @@ export default function LiveMonitoring() {
 
   const handleConnect = async () => {
     try {
+      setIsConnecting(true);
+      setDeviceStatus("Connecting...");
       await connectESP32();
       setDeviceStatus("Connected");
     } catch (error) {
       console.error(error);
       alert(error.message);
       setDeviceStatus("Failed");
+    } finally {
+      setIsConnecting(false);
     }
   };
 
   const handleStartReading = async () => {
     try {
+      setIsReading(true);
+
       await startReading((parsed) => {
         const time = new Date().toLocaleTimeString("en-US", {
           hour: "2-digit",
@@ -183,6 +191,7 @@ export default function LiveMonitoring() {
       console.error(error);
       alert(error.message);
       setDeviceStatus("Read Failed");
+      setIsReading(false);
     }
   };
 
@@ -201,16 +210,18 @@ export default function LiveMonitoring() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleConnect}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+            disabled={isConnecting}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Connect ESP32
+            {isConnecting ? "Connecting..." : "Connect ESP32"}
           </button>
 
           <button
             onClick={handleStartReading}
-            className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition"
+            disabled={deviceStatus !== "Connected" && deviceStatus !== "Warning"}
+            className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Start Reading
+            {isReading ? "Reading..." : "Start Reading"}
           </button>
 
           <div
