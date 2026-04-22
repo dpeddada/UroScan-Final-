@@ -43,6 +43,7 @@ export default function SummaryCards() {
       }));
     } catch (error) {
       console.error(error);
+      alert(error.message);
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Failed",
@@ -62,13 +63,14 @@ export default function SummaryCards() {
         const turbidityNum = parsed.turbidity_rntu
           ? parseFloat(parsed.turbidity_rntu)
           : null;
-        const batteryAlerts = [];
+
+        const alerts = [];
         const statusText = parsed.status || "UNKNOWN";
 
-        if (statusText !== "OK") batteryAlerts.push("Telemetry issue");
-        if (parsed.motion_flag === "1") batteryAlerts.push("Flow active");
-        if (parsed.turbidity_sat === "YES") batteryAlerts.push("Turbidity saturated");
-        if (parsed.turbidity_bdl === "YES") batteryAlerts.push("Below detection");
+        if (statusText !== "OK") alerts.push("Telemetry issue");
+        if (parsed.motion_flag === "1") alerts.push("Flow active");
+        if (parsed.turbidity_sat === "YES") alerts.push("Turbidity saturated");
+        if (parsed.turbidity_bdl === "YES") alerts.push("Below detection");
 
         const fillPercent =
           volumeNum !== null
@@ -110,12 +112,10 @@ export default function SummaryCards() {
               ? `Code: ${parsed.color_code}`
               : prev.colorSub,
 
-          alerts: String(batteryAlerts.length),
+          alerts: String(alerts.length),
 
           alertsSub:
-            batteryAlerts.length > 0
-              ? batteryAlerts.join(" • ")
-              : "No active alerts",
+            alerts.length > 0 ? alerts.join(" • ") : "No active alerts",
 
           lastSync: "Just now",
           lastSyncSub: statusText,
@@ -136,6 +136,7 @@ export default function SummaryCards() {
       });
     } catch (error) {
       console.error(error);
+      alert(error.message);
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Read Failed",
