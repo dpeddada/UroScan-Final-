@@ -47,7 +47,10 @@ export default function FlowStateChart({ data = [] }) {
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(210 15% 88%)" />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="hsl(210 15% 88%)"
+            />
             <XAxis
               dataKey="time"
               tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
@@ -60,6 +63,12 @@ export default function FlowStateChart({ data = [] }) {
               tickFormatter={(v) => (v ? "ON" : "OFF")}
             />
             <Tooltip
+              contentStyle={{
+                fontSize: 11,
+                borderRadius: 8,
+                border: "1px solid hsl(210 15% 88%)",
+                background: "white",
+              }}
               formatter={(value) => [value ? "Flow Detected" : "No Flow", "State"]}
             />
             <Area
