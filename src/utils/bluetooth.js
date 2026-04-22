@@ -3,8 +3,8 @@ let server = null;
 let service = null;
 let txCharacteristic = null;
 
-const SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
-const TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_CHAR_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
 function parseDataLine(line) {
   if (!line || !line.startsWith("DATA,")) return null;
@@ -40,7 +40,6 @@ export async function connectESP32() {
     service = await server.getPrimaryService(SERVICE_UUID);
     txCharacteristic = await service.getCharacteristic(TX_CHAR_UUID);
 
-    console.log("Connected to:", device.name || "Unknown device");
     return device;
   } catch (error) {
     console.error("connectESP32 error:", error);
@@ -68,8 +67,6 @@ export async function startReading(onParsedData) {
         }
       }
     });
-
-    console.log("Started reading notifications.");
   } catch (error) {
     console.error("startReading error:", error);
     throw error;
