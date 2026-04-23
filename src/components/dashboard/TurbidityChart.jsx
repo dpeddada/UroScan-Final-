@@ -28,13 +28,12 @@ export default function TurbidityChart({ data = [] }) {
             <XAxis dataKey="time" />
             <YAxis />
             <Tooltip />
-
             <Line
               type="monotone"
               dataKey="turbidity"
               stroke="#3b82f6"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3 }}
               isAnimationActive={false}
             />
           </LineChart>
