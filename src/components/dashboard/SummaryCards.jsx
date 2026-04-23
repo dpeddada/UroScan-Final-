@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card } from "../ui/card";
 import {
   Droplets,
@@ -10,142 +9,8 @@ import {
   Wifi,
   Gauge,
 } from "lucide-react";
-import { connectESP32, startReading } from "../../utils/bluetooth";
 
-export default function SummaryCards() {
-  const [summaryData, setSummaryData] = useState({
-    volume: "0.00 mL",
-    flowState: "Idle",
-    flowSub: "0.00 mL/s",
-    turbidity: "0.0 rNTU",
-    turbiditySub: "Label: A",
-    color: "NA",
-    colorSub: "Code: -1",
-    alerts: "0",
-    alertsSub: "No active alerts",
-    lastSync: "Not connected",
-    lastSyncSub: "BLE idle",
-    deviceStatus: "Disconnected",
-    deviceSub: "UroScale",
-    bagFill: "0%",
-    bagFillSub: "~0.00 mL / 2,000 mL",
-  });
-
-  const handleConnect = async () => {
-    try {
-      await connectESP32();
-      setSummaryData((prev) => ({
-        ...prev,
-        deviceStatus: "Connected",
-        deviceSub: "UroScale",
-        lastSync: "Just now",
-        lastSyncSub: "BLE connected",
-      }));
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-      setSummaryData((prev) => ({
-        ...prev,
-        deviceStatus: "Failed",
-        lastSync: "Connection failed",
-        lastSyncSub: "Check BLE device",
-      }));
-    }
-  };
-
-  const handleStartReading = async () => {
-    try {
-      await startReading((parsed) => {
-        const volumeNum = parsed.volume_ml ? parseFloat(parsed.volume_ml) : null;
-        const flowNum = parsed.flow_rate_mLs
-          ? parseFloat(parsed.flow_rate_mLs)
-          : null;
-        const turbidityNum = parsed.turbidity_rntu
-          ? parseFloat(parsed.turbidity_rntu)
-          : null;
-
-        const alerts = [];
-        const statusText = parsed.status || "UNKNOWN";
-
-        if (statusText !== "OK") alerts.push("Telemetry issue");
-        if (parsed.motion_flag === "1") alerts.push("Flow active");
-        if (parsed.turbidity_sat === "YES") alerts.push("Turbidity saturated");
-        if (parsed.turbidity_bdl === "YES") alerts.push("Below detection");
-
-        const fillPercent =
-          volumeNum !== null
-            ? Math.max(0, Math.min(100, Math.round((volumeNum / 2000) * 100)))
-            : null;
-
-        setSummaryData((prev) => ({
-          ...prev,
-          volume:
-            volumeNum !== null && !Number.isNaN(volumeNum)
-              ? `${volumeNum.toFixed(2)} mL`
-              : prev.volume,
-
-          flowState:
-            parsed.motion_flag === "1"
-              ? "Active"
-              : parsed.motion_flag === "0"
-              ? "Idle"
-              : prev.flowState,
-
-          flowSub:
-            flowNum !== null && !Number.isNaN(flowNum)
-              ? `${flowNum.toFixed(2)} mL/s`
-              : prev.flowSub,
-
-          turbidity:
-            turbidityNum !== null && !Number.isNaN(turbidityNum)
-              ? `${turbidityNum.toFixed(1)} rNTU`
-              : prev.turbidity,
-
-          turbiditySub: parsed.turbidity_label
-            ? `Label: ${parsed.turbidity_label}`
-            : prev.turbiditySub,
-
-          color: parsed.color_value || prev.color,
-
-          colorSub:
-            parsed.color_code !== undefined
-              ? `Code: ${parsed.color_code}`
-              : prev.colorSub,
-
-          alerts: String(alerts.length),
-
-          alertsSub:
-            alerts.length > 0 ? alerts.join(" • ") : "No active alerts",
-
-          lastSync: "Just now",
-          lastSyncSub: statusText,
-
-          deviceStatus: statusText === "OK" ? "Connected" : "Warning",
-          deviceSub: "UroScale",
-
-          bagFill:
-            fillPercent !== null && !Number.isNaN(fillPercent)
-              ? `${fillPercent}%`
-              : prev.bagFill,
-
-          bagFillSub:
-            volumeNum !== null && !Number.isNaN(volumeNum)
-              ? `~${volumeNum.toFixed(2)} mL / 2,000 mL`
-              : prev.bagFillSub,
-        }));
-      });
-    } catch (error) {
-      console.error(error);
-      alert(error.message);
-      setSummaryData((prev) => ({
-        ...prev,
-        deviceStatus: "Read Failed",
-        lastSync: "Read failed",
-        lastSyncSub: "Check parser / notifications",
-      }));
-    }
-  };
-
+export default function SummaryCards({ summaryData }) {
   const cards = [
     {
       label: "Total Volume",
@@ -224,58 +89,40 @@ export default function SummaryCards() {
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        <button
-          onClick={handleConnect}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {cards.map((card) => (
+        <Card
+          key={card.label}
+          className="p-4 border border-border bg-card hover:shadow-md transition-shadow"
         >
-          Connect ESP32
-        </button>
-
-        <button
-          onClick={handleStartReading}
-          className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition"
-        >
-          Start Reading
-        </button>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {cards.map((card) => (
-          <Card
-            key={card.label}
-            className="p-4 border border-border bg-card hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div
-                className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center`}
-              >
-                <card.icon className={`w-4.5 h-4.5 ${card.color}`} />
-              </div>
-
-              {card.label === "Flow State" && (
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-success animate-live-pulse" />
-                  <span className="text-[9px] font-semibold text-success uppercase tracking-wider">
-                    Live
-                  </span>
-                </div>
-              )}
+          <div className="flex items-start justify-between mb-3">
+            <div
+              className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center`}
+            >
+              <card.icon className={`w-4.5 h-4.5 ${card.color}`} />
             </div>
 
-            <p className="text-xs text-muted-foreground font-medium">
-              {card.label}
-            </p>
-            <p className="text-lg font-bold text-foreground mt-0.5">
-              {card.value}
-            </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {card.sub}
-            </p>
-          </Card>
-        ))}
-      </div>
+            {card.label === "Flow State" && (
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-success animate-live-pulse" />
+                <span className="text-[9px] font-semibold text-success uppercase tracking-wider">
+                  Live
+                </span>
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-muted-foreground font-medium">
+            {card.label}
+          </p>
+          <p className="text-lg font-bold text-foreground mt-0.5">
+            {card.value}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {card.sub}
+          </p>
+        </Card>
+      ))}
     </div>
   );
 }
