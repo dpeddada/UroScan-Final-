@@ -35,7 +35,7 @@ export async function connectESP32() {
 
     device = await navigator.bluetooth.requestDevice({
       acceptAllDevices: true,
-      optionalServices: [SERVICE_UUID]
+      optionalServices: [SERVICE_UUID],
     });
 
     server = await device.gatt.connect();
@@ -57,7 +57,10 @@ export async function startReading(onParsedData) {
     }
 
     if (notifyHandler) {
-      txCharacteristic.removeEventListener("characteristicvaluechanged", notifyHandler);
+      txCharacteristic.removeEventListener(
+        "characteristicvaluechanged",
+        notifyHandler
+      );
     }
 
     lineBuffer = "";
@@ -83,7 +86,10 @@ export async function startReading(onParsedData) {
     };
 
     await txCharacteristic.startNotifications();
-    txCharacteristic.addEventListener("characteristicvaluechanged", notifyHandler);
+    txCharacteristic.addEventListener(
+      "characteristicvaluechanged",
+      notifyHandler
+    );
   } catch (error) {
     console.error("startReading error:", error);
     throw error;
