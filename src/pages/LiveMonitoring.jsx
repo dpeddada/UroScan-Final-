@@ -282,6 +282,13 @@ export default function LiveMonitoring() {
         </div>
       </Card>
 
+      <Card className="p-3 border border-border bg-card text-sm text-foreground">
+        <p>Volume points: {volumeHistory.length}</p>
+        <p>Flow points: {flowHistory.length}</p>
+        <p>Turbidity points: {turbidityHistory.length}</p>
+        <p>Color points: {colorHistory.length}</p>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <FlowVisualizer isFlowing={isFlowing} />
         <SensorReadings />
