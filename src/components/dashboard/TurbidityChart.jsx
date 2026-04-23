@@ -1,4 +1,4 @@
-import { Card } from "../ui/card";
+import { Card } from "@/components/ui/card";
 import {
   LineChart,
   Line,
@@ -7,58 +7,32 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
 
 export default function TurbidityChart({ data = [] }) {
   return (
-    <Card className="p-5 border border-border bg-card">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            Turbidity — Clarity Index
-          </h3>
-          <p className="text-[11px] text-muted-foreground">
-            rNTU trend from device telemetry
-          </p>
-        </div>
+    <Card className="p-5 border border-border">
+      <div className="mb-4">
+        <h3 className="text-sm font-semibold text-foreground">
+          Turbidity — Clarity Index
+        </h3>
+        <p className="text-[11px] text-muted-foreground">
+          rNTU trend from device
+        </p>
       </div>
 
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="hsl(210 15% 88%)"
-            />
-            <XAxis
-              dataKey="time"
-              tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
-              domain={[0, "auto"]}
-            />
-            <Tooltip
-              contentStyle={{
-                fontSize: 11,
-                borderRadius: 8,
-                border: "1px solid hsl(210 15% 88%)",
-                background: "white",
-              }}
-              labelStyle={{ fontWeight: 600 }}
-              formatter={(value) => [`${value} rNTU`, "Turbidity"]}
-            />
-            <ReferenceLine
-              y={100}
-              stroke="hsl(0 65% 55%)"
-              strokeDasharray="3 3"
-            />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip />
+
             <Line
               type="monotone"
               dataKey="turbidity"
-              stroke="hsl(210 70% 45%)"
+              stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}
