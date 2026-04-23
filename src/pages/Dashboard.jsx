@@ -222,6 +222,10 @@ export default function Dashboard() {
 
       <SummaryCards summaryData={summaryData} />
 
+      <div className="p-3 rounded-lg border border-border bg-card text-sm text-foreground">
+        Volume points: {volumeHistory.length} | Flow points: {flowHistory.length} | Turbidity points: {turbidityHistory.length}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <LiveVolumeChart data={volumeHistory} />
         <FlowStateChart data={flowHistory} />
