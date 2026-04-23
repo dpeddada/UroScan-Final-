@@ -10,8 +10,7 @@ import {
 } from "recharts";
 
 export default function FlowStateChart({ data = [] }) {
-  const currentFlow =
-    data.length > 0 ? data[data.length - 1].flow : 0;
+  const currentFlow = data.length > 0 ? data[data.length - 1].flow : 0;
 
   return (
     <Card className="p-5 border border-border">
@@ -24,7 +23,6 @@ export default function FlowStateChart({ data = [] }) {
             Motion sensor ON/OFF detection
           </p>
         </div>
-
         <span className="text-xs font-semibold">
           {currentFlow ? "FLOW DETECTED" : "NO FLOW"}
         </span>
@@ -37,12 +35,12 @@ export default function FlowStateChart({ data = [] }) {
             <XAxis dataKey="time" />
             <YAxis domain={[0, 1]} />
             <Tooltip />
-
             <Area
               type="stepAfter"
               dataKey="flow"
               stroke="#10b981"
               fill="#10b98133"
+              strokeWidth={2}
               isAnimationActive={false}
             />
           </AreaChart>
