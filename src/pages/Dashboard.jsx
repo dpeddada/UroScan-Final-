@@ -40,6 +40,7 @@ export default function Dashboard() {
   const handleConnect = async () => {
     try {
       await connectESP32();
+
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Connected",
@@ -50,6 +51,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error(error);
       alert(error.message);
+
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Failed",
@@ -68,17 +70,24 @@ export default function Dashboard() {
           second: "2-digit",
         });
 
-        const volumeNum = parsed.volume_ml ? parseFloat(parsed.volume_ml) : null;
-        const flowNum = parsed.flow_rate_mLs
-          ? parseFloat(parsed.flow_rate_mLs)
-          : null;
-        const turbidityNum = parsed.turbidity_rntu
-          ? parseFloat(parsed.turbidity_rntu)
-          : null;
+        const volumeNum =
+          parsed.volume_ml !== undefined
+            ? parseFloat(parsed.volume_ml)
+            : null;
+
+        const flowNum =
+          parsed.flow_rate_mLs !== undefined
+            ? parseFloat(parsed.flow_rate_mLs)
+            : null;
+
+        const turbidityNum =
+          parsed.turbidity_rntu !== undefined
+            ? parseFloat(parsed.turbidity_rntu)
+            : null;
 
         const alerts = [];
         const statusText = parsed.status || "UNKNOWN";
-        const flowFlag = parsed.motion_flag === "1";
+        const flowFlag = String(parsed.motion_flag) === "1";
 
         if (statusText !== "OK") alerts.push("Telemetry issue");
         if (flowFlag) alerts.push("Flow active");
@@ -86,7 +95,7 @@ export default function Dashboard() {
         if (parsed.turbidity_bdl === "YES") alerts.push("Below detection");
 
         const fillPercent =
-          volumeNum !== null
+          volumeNum !== null && !Number.isNaN(volumeNum)
             ? Math.max(0, Math.min(100, Math.round((volumeNum / 2000) * 100)))
             : null;
 
@@ -147,10 +156,12 @@ export default function Dashboard() {
           ]);
         }
 
-        setFlowHistory((prev) => [
-          ...prev.slice(-59),
-          { time, flow: flowFlag ? 1 : 0 },
-        ]);
+        if (flowNum !== null && !Number.isNaN(flowNum)) {
+          setFlowHistory((prev) => [
+            ...prev.slice(-59),
+            { time, flow: flowFlag ? 1 : 0 },
+          ]);
+        }
 
         if (turbidityNum !== null && !Number.isNaN(turbidityNum)) {
           setTurbidityHistory((prev) => [
@@ -162,6 +173,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error(error);
       alert(error.message);
+
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Read Failed",
