@@ -1,4 +1,4 @@
-import { Card } from "../ui/card";
+import { Card } from "@/components/ui/card";
 import {
   AreaChart,
   Area,
@@ -10,7 +10,8 @@ import {
 } from "recharts";
 
 export default function FlowStateChart({ data = [] }) {
-  const currentFlow = data.length > 0 ? data[data.length - 1].flow : 0;
+  const currentFlow =
+    data.length > 0 ? data[data.length - 1].flow : 0;
 
   return (
     <Card className="p-5 border border-border">
@@ -24,59 +25,24 @@ export default function FlowStateChart({ data = [] }) {
           </p>
         </div>
 
-        <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
-            currentFlow ? "bg-success/10" : "bg-muted"
-          }`}
-        >
-          <div
-            className={`w-1.5 h-1.5 rounded-full ${
-              currentFlow ? "bg-success animate-live-pulse" : "bg-muted-foreground"
-            }`}
-          />
-          <span
-            className={`text-[10px] font-semibold ${
-              currentFlow ? "text-success" : "text-muted-foreground"
-            }`}
-          >
-            {currentFlow ? "FLOW DETECTED" : "NO FLOW"}
-          </span>
-        </div>
+        <span className="text-xs font-semibold">
+          {currentFlow ? "FLOW DETECTED" : "NO FLOW"}
+        </span>
       </div>
 
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="hsl(210 15% 88%)"
-            />
-            <XAxis
-              dataKey="time"
-              tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              tick={{ fontSize: 9, fill: "hsl(215 12% 50%)" }}
-              domain={[0, 1]}
-              ticks={[0, 1]}
-              tickFormatter={(v) => (v ? "ON" : "OFF")}
-            />
-            <Tooltip
-              contentStyle={{
-                fontSize: 11,
-                borderRadius: 8,
-                border: "1px solid hsl(210 15% 88%)",
-                background: "white",
-              }}
-              formatter={(value) => [value ? "Flow Detected" : "No Flow", "State"]}
-            />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis domain={[0, 1]} />
+            <Tooltip />
+
             <Area
               type="stepAfter"
               dataKey="flow"
-              stroke="hsl(175 55% 42%)"
-              fill="hsl(175 55% 42% / 0.15)"
-              strokeWidth={2}
+              stroke="#10b981"
+              fill="#10b98133"
               isAnimationActive={false}
             />
           </AreaChart>
