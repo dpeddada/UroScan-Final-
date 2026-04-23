@@ -34,7 +34,7 @@ export async function connectESP32() {
     }
 
     device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
+      filters: [{ namePrefix: "Uro" }],
       optionalServices: [SERVICE_UUID],
     });
 
@@ -57,10 +57,7 @@ export async function startReading(onParsedData) {
     }
 
     if (notifyHandler) {
-      txCharacteristic.removeEventListener(
-        "characteristicvaluechanged",
-        notifyHandler
-      );
+      txCharacteristic.removeEventListener("characteristicvaluechanged", notifyHandler);
     }
 
     lineBuffer = "";
@@ -86,10 +83,7 @@ export async function startReading(onParsedData) {
     };
 
     await txCharacteristic.startNotifications();
-    txCharacteristic.addEventListener(
-      "characteristicvaluechanged",
-      notifyHandler
-    );
+    txCharacteristic.addEventListener("characteristicvaluechanged", notifyHandler);
   } catch (error) {
     console.error("startReading error:", error);
     throw error;
