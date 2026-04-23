@@ -21,9 +21,7 @@ export default function LiveVolumeChart({ data = [] }) {
             Volume trend (last 2 minutes)
           </p>
         </div>
-        <span className="text-xs text-success font-semibold">
-          STREAMING
-        </span>
+        <span className="text-xs text-success font-semibold">STREAMING</span>
       </div>
 
       <div className="h-52">
@@ -33,13 +31,12 @@ export default function LiveVolumeChart({ data = [] }) {
             <XAxis dataKey="time" />
             <YAxis />
             <Tooltip />
-
             <Line
               type="monotone"
               dataKey="volume"
               stroke="#2563eb"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3 }}
               isAnimationActive={false}
             />
           </LineChart>
