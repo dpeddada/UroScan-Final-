@@ -1,51 +1,97 @@
-import { Card } from "@/components/ui/card";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+let device = null;
+let server = null;
+let service = null;
+let txCharacteristic = null;
+let lineBuffer = "";
+let notifyHandler = null;
 
-export default function FlowStateChart({ data = [] }) {
-  const currentFlow = data.length > 0 ? data[data.length - 1].flow : 0;
+const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_CHAR_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
-  return (
-    <Card className="p-5 border border-border">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">
-            Flow State — Live
-          </h3>
-          <p className="text-[11px] text-muted-foreground">
-            Motion sensor ON/OFF detection
-          </p>
-        </div>
-        <span className="text-xs font-semibold">
-          {currentFlow ? "FLOW DETECTED" : "NO FLOW"}
-        </span>
-      </div>
+function parseDataLine(line) {
+  if (!line || !line.startsWith("DATA,")) return null;
 
-      <div className="h-40">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
-            <YAxis domain={[0, 1]} />
-            <Tooltip />
-            <Area
-              type="stepAfter"
-              dataKey="flow"
-              stroke="#10b981"
-              fill="#10b98133"
-              strokeWidth={2}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  );
+  const payload = line.slice(5);
+  const parts = payload.split(",");
+  const result = {};
+
+  for (const part of parts) {
+    const eqIndex = part.indexOf("=");
+    if (eqIndex === -1) continue;
+
+    const key = part.slice(0, eqIndex).trim();
+    const value = part.slice(eqIndex + 1).trim();
+    result[key] = value;
+  }
+
+  return result;
+}
+
+export async function connectESP32() {
+  try {
+    if (!navigator.bluetooth) {
+      throw new Error("Web Bluetooth is not supported in this browser.");
+    }
+
+    device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [SERVICE_UUID],
+    });
+
+    server = await device.gatt.connect();
+    service = await server.getPrimaryService(SERVICE_UUID);
+    txCharacteristic = await service.getCharacteristic(TX_CHAR_UUID);
+
+    lineBuffer = "";
+    return device;
+  } catch (error) {
+    console.error("connectESP32 error:", error);
+    throw error;
+  }
+}
+
+export async function startReading(onParsedData) {
+  try {
+    if (!txCharacteristic) {
+      throw new Error("Bluetooth device not connected.");
+    }
+
+    if (notifyHandler) {
+      txCharacteristic.removeEventListener(
+        "characteristicvaluechanged",
+        notifyHandler
+      );
+    }
+
+    lineBuffer = "";
+
+    notifyHandler = (event) => {
+      const value = event.target.value;
+      const chunk = new TextDecoder().decode(value);
+
+      lineBuffer += chunk;
+
+      const lines = lineBuffer.split(/\r?\n/);
+      lineBuffer = lines.pop() || "";
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        const parsed = parseDataLine(line);
+        if (parsed) {
+          onParsedData(parsed);
+        }
+      }
+    };
+
+    await txCharacteristic.startNotifications();
+    txCharacteristic.addEventListener(
+      "characteristicvaluechanged",
+      notifyHandler
+    );
+  } catch (error) {
+    console.error("startReading error:", error);
+    throw error;
+  }
 }
