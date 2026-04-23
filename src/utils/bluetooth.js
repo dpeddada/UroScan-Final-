@@ -33,6 +33,9 @@ export async function connectESP32() {
       throw new Error("Web Bluetooth is not supported in this browser.");
     }
 
+    console.log("UPDATED BLUETOOTH FILE IS RUNNING");
+    console.log("SERVICE UUID =", SERVICE_UUID);
+
     device = await navigator.bluetooth.requestDevice({
       filters: [{ namePrefix: "Uro" }],
       optionalServices: [SERVICE_UUID],
