@@ -23,9 +23,6 @@ export default function Dashboard() {
     lastSync: "Not connected",
     lastSyncSub: "BLE idle",
     deviceStatus: "Disconnected",
-    deviceSub: "UroScale",
-    bagFill: "0%",
-    bagFillSub: "~0.00 mL / 2,000 mL",
   });
 
   const [flowRateHistory, setFlowRateHistory] = useState([]);
@@ -41,14 +38,12 @@ export default function Dashboard() {
   const handleConnect = async () => {
     try {
       setIsConnecting(true);
-
       await connectESP32();
 
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Connected",
         lastSync: "Just now",
-        lastSyncSub: "BLE connected",
       }));
     } catch (error) {
       alert(error.message);
@@ -119,42 +114,45 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* 🔴 ALWAYS VISIBLE BUTTON */}
+      <button
+        onClick={handleDisconnect}
+        className="fixed top-4 right-4 z-[9999] px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold shadow-lg"
+      >
+        Disconnect
+      </button>
+
       {/* Header */}
-      <div className="flex flex-col gap-3">
+      <div>
         <h1 className="text-xl font-bold">Dashboard</h1>
-
-        {/* Buttons (clean + always visible) */}
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={handleConnect}
-            disabled={isConnecting || summaryData.deviceStatus === "Connected"}
-            className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm"
-          >
-            {isConnecting ? "Connecting..." : "Connect"}
-          </button>
-
-          <button
-            onClick={handleStartReading}
-            disabled={
-              isReading ||
-              (summaryData.deviceStatus !== "Connected" &&
-                summaryData.deviceStatus !== "Warning")
-            }
-            className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm"
-          >
-            {isReading ? "Reading..." : "Start"}
-          </button>
-
-          <button
-            onClick={handleDisconnect}
-            className="px-3 py-2 rounded-lg bg-red-600 text-white text-sm"
-          >
-            Disconnect
-          </button>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          ICU Unit A — Monitoring Overview
+        </p>
       </div>
 
-      {/* Cards */}
+      {/* Controls */}
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={handleConnect}
+          disabled={isConnecting || summaryData.deviceStatus === "Connected"}
+          className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm"
+        >
+          {isConnecting ? "Connecting..." : "Connect"}
+        </button>
+
+        <button
+          onClick={handleStartReading}
+          disabled={
+            isReading ||
+            summaryData.deviceStatus !== "Connected"
+          }
+          className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm"
+        >
+          {isReading ? "Reading..." : "Start"}
+        </button>
+      </div>
+
+      {/* Summary */}
       <SummaryCards summaryData={summaryData} />
 
       {/* Graph */}
