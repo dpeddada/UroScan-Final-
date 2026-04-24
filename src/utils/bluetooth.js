@@ -33,9 +33,22 @@ export async function connectESP32() {
       throw new Error("Web Bluetooth is not supported in this browser.");
     }
 
+    if (device && device.gatt && device.gatt.connected && txCharacteristic) {
+      return device;
+    }
+
     device = await navigator.bluetooth.requestDevice({
       filters: [{ namePrefix: "Uro" }],
       optionalServices: [SERVICE_UUID],
+    });
+
+    device.addEventListener("gattserverdisconnected", () => {
+      server = null;
+      service = null;
+      txCharacteristic = null;
+      notifyHandler = null;
+      lineBuffer = "";
+      console.log("ESP32 Bluetooth disconnected.");
     });
 
     server = await device.gatt.connect();
@@ -104,7 +117,11 @@ export async function stopReading() {
         notifyHandler
       );
 
-      await txCharacteristic.stopNotifications();
+      try {
+        await txCharacteristic.stopNotifications();
+      } catch (error) {
+        console.warn("Notifications may already be stopped:", error);
+      }
 
       notifyHandler = null;
       lineBuffer = "";
@@ -126,8 +143,8 @@ export async function disconnectESP32() {
     server = null;
     service = null;
     txCharacteristic = null;
-    lineBuffer = "";
     notifyHandler = null;
+    lineBuffer = "";
   } catch (error) {
     console.error("disconnectESP32 error:", error);
   }
