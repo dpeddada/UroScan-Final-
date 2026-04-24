@@ -56,8 +56,12 @@ export default function LiveMonitoring() {
 
         setCurrentReadings({
           volume_ml: Number.isFinite(volume) ? volume.toFixed(2) : "0.00",
-          flow_rate_mLs: Number.isFinite(flowRate) ? flowRate.toFixed(2) : "0.00",
-          turbidity_rntu: Number.isFinite(turbidity) ? turbidity.toFixed(1) : "0.0",
+          flow_rate_mLs: Number.isFinite(flowRate)
+            ? flowRate.toFixed(2)
+            : "0.00",
+          turbidity_rntu: Number.isFinite(turbidity)
+            ? turbidity.toFixed(1)
+            : "0.0",
           color_value: parsed.color_value || "NA",
           color_code: Number.isFinite(colorCode) ? colorCode : -1,
           motion_flag: parsed.motion_flag || "0",
@@ -117,10 +121,16 @@ export default function LiveMonitoring() {
           >
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                isFlowing ? "bg-success animate-live-pulse" : "bg-muted-foreground"
+                isFlowing
+                  ? "bg-success animate-live-pulse"
+                  : "bg-muted-foreground"
               }`}
             />
-            <span className={`text-sm font-bold ${isFlowing ? "text-success" : "text-muted-foreground"}`}>
+            <span
+              className={`text-sm font-bold ${
+                isFlowing ? "text-success" : "text-muted-foreground"
+              }`}
+            >
               {isFlowing ? "FLOW DETECTED" : "NO FLOW"}
             </span>
           </div>
@@ -133,22 +143,31 @@ export default function LiveMonitoring() {
             <p className="text-xs text-muted-foreground">Device Status</p>
             <p className="font-semibold">{deviceStatus}</p>
           </div>
+
           <div>
             <p className="text-xs text-muted-foreground">Volume</p>
             <p className="font-semibold">{currentReadings.volume_ml} mL</p>
           </div>
+
           <div>
             <p className="text-xs text-muted-foreground">Flow Rate</p>
-            <p className="font-semibold">{currentReadings.flow_rate_mLs} mL/s</p>
+            <p className="font-semibold">
+              {currentReadings.flow_rate_mLs} mL/s
+            </p>
           </div>
+
           <div>
             <p className="text-xs text-muted-foreground">Turbidity</p>
-            <p className="font-semibold">{currentReadings.turbidity_rntu} rNTU</p>
+            <p className="font-semibold">
+              {currentReadings.turbidity_rntu} rNTU
+            </p>
           </div>
+
           <div>
             <p className="text-xs text-muted-foreground">Color</p>
             <p className="font-semibold">{currentReadings.color_value}</p>
           </div>
+
           <div>
             <p className="text-xs text-muted-foreground">Motion Flag</p>
             <p className="font-semibold">{currentReadings.motion_flag}</p>
