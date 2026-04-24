@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FlowRateChart from "../components/dashboard/FlowRateChart";
 import FlowVisualizer from "../monitoring/FlowVisualizer";
 import SensorReadings from "../monitoring/SensorReadings";
 import EventLog from "../monitoring/EventLog";
 import { Card } from "../components/ui/card";
-import { connectESP32, startReading } from "../utils/bluetooth";
+import { connectESP32, startReading, stopReading } from "../utils/bluetooth";
 
 export default function LiveMonitoring() {
   const [isFlowing, setIsFlowing] = useState(false);
@@ -22,6 +22,12 @@ export default function LiveMonitoring() {
     motion_flag: "0",
     status: "IDLE",
   });
+
+  useEffect(() => {
+    return () => {
+      stopReading();
+    };
+  }, []);
 
   const handleConnect = async () => {
     try {
