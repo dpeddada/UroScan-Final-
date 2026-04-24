@@ -45,19 +45,47 @@ export default function Dashboard() {
 
     setSummaryData((prev) => ({
       ...prev,
-      volume: volumeNum !== null && !Number.isNaN(volumeNum) ? `${volumeNum.toFixed(2)} mL` : prev.volume,
+      volume:
+        volumeNum !== null && !Number.isNaN(volumeNum)
+          ? `${volumeNum.toFixed(2)} mL`
+          : prev.volume,
+
       flowState: flowFlag ? "Active" : "Idle",
-      flowSub: flowNum !== null && !Number.isNaN(flowNum) ? `${flowNum.toFixed(2)} mL/s` : prev.flowSub,
-      turbidity: turbidityNum !== null && !Number.isNaN(turbidityNum) ? `${turbidityNum.toFixed(1)} rNTU` : prev.turbidity,
-      turbiditySub: parsed.turbidity_label ? `Label: ${parsed.turbidity_label}` : prev.turbiditySub,
+
+      flowSub:
+        flowNum !== null && !Number.isNaN(flowNum)
+          ? `${flowNum.toFixed(2)} mL/s`
+          : prev.flowSub,
+
+      turbidity:
+        turbidityNum !== null && !Number.isNaN(turbidityNum)
+          ? `${turbidityNum.toFixed(1)} rNTU`
+          : prev.turbidity,
+
+      turbiditySub: parsed.turbidity_label
+        ? `Label: ${parsed.turbidity_label}`
+        : prev.turbiditySub,
+
       color: parsed.color_value || prev.color,
-      colorSub: parsed.color_code !== undefined ? `Code: ${parsed.color_code}` : prev.colorSub,
+      colorSub:
+        parsed.color_code !== undefined
+          ? `Code: ${parsed.color_code}`
+          : prev.colorSub,
+
       lastSync: "Just now",
       lastSyncSub: statusText,
       deviceStatus: statusText === "OK" ? "Connected" : "Warning",
       deviceSub: "UroScale",
-      bagFill: fillPercent !== null && !Number.isNaN(fillPercent) ? `${fillPercent}%` : prev.bagFill,
-      bagFillSub: volumeNum !== null && !Number.isNaN(volumeNum) ? `~${volumeNum.toFixed(2)} mL / 2,000 mL` : prev.bagFillSub,
+
+      bagFill:
+        fillPercent !== null && !Number.isNaN(fillPercent)
+          ? `${fillPercent}%`
+          : prev.bagFill,
+
+      bagFillSub:
+        volumeNum !== null && !Number.isNaN(volumeNum)
+          ? `~${volumeNum.toFixed(2)} mL / 2,000 mL`
+          : prev.bagFillSub,
     }));
   };
 
@@ -118,11 +146,17 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          <button onClick={handleConnect} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium">
+          <button
+            onClick={handleConnect}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium"
+          >
             Connect ESP32
           </button>
 
-          <button onClick={handleStartReading} className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium">
+          <button
+            onClick={handleStartReading}
+            className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium"
+          >
             Start Reading
           </button>
         </div>
