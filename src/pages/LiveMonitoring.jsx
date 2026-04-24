@@ -27,9 +27,31 @@ export default function LiveMonitoring() {
     status: "IDLE",
   });
 
+  const resetLiveState = () => {
+    setIsReading(false);
+    setIsFlowing(false);
+    setDeviceStatus("Disconnected");
+  };
+
+  const fullDisconnect = async () => {
+    await disconnectESP32();
+    resetLiveState();
+  };
+
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        fullDisconnect();
+      }
+    };
+
+    window.addEventListener("beforeunload", fullDisconnect);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
-      disconnectESP32();
+      fullDisconnect();
+      window.removeEventListener("beforeunload", fullDisconnect);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
@@ -96,10 +118,7 @@ export default function LiveMonitoring() {
   };
 
   const handleDisconnect = async () => {
-    await disconnectESP32();
-    setIsReading(false);
-    setIsFlowing(false);
-    setDeviceStatus("Disconnected");
+    await fullDisconnect();
   };
 
   return (
