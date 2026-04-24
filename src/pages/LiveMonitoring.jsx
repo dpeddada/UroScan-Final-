@@ -4,7 +4,11 @@ import FlowVisualizer from "../monitoring/FlowVisualizer";
 import SensorReadings from "../monitoring/SensorReadings";
 import EventLog from "../monitoring/EventLog";
 import { Card } from "../components/ui/card";
-import { connectESP32, startReading, stopReading } from "../utils/bluetooth";
+import {
+  connectESP32,
+  startReading,
+  disconnectESP32,
+} from "../utils/bluetooth";
 
 export default function LiveMonitoring() {
   const [isFlowing, setIsFlowing] = useState(false);
@@ -25,7 +29,7 @@ export default function LiveMonitoring() {
 
   useEffect(() => {
     return () => {
-      stopReading();
+      disconnectESP32();
     };
   }, []);
 
@@ -58,7 +62,7 @@ export default function LiveMonitoring() {
         const flowRate = parseFloat(parsed.flow_rate_mLs);
         const turbidity = parseFloat(parsed.turbidity_rntu);
         const colorCode = parseInt(parsed.color_code, 10);
-        const flowFlag = parsed.motion_flag === "1";
+        const flowFlag = String(parsed.motion_flag) === "1";
 
         setCurrentReadings({
           volume_ml: Number.isFinite(volume) ? volume.toFixed(2) : "0.00",
@@ -91,6 +95,13 @@ export default function LiveMonitoring() {
     }
   };
 
+  const handleDisconnect = async () => {
+    await disconnectESP32();
+    setIsReading(false);
+    setIsFlowing(false);
+    setDeviceStatus("Disconnected");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -104,7 +115,7 @@ export default function LiveMonitoring() {
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handleConnect}
-            disabled={isConnecting}
+            disabled={isConnecting || deviceStatus === "Connected"}
             className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium disabled:opacity-60"
           >
             {isConnecting ? "Connecting..." : "Connect ESP32"}
@@ -112,10 +123,20 @@ export default function LiveMonitoring() {
 
           <button
             onClick={handleStartReading}
-            disabled={deviceStatus !== "Connected" && deviceStatus !== "Warning"}
+            disabled={
+              isReading ||
+              (deviceStatus !== "Connected" && deviceStatus !== "Warning")
+            }
             className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium disabled:opacity-60"
           >
             {isReading ? "Reading..." : "Start Reading"}
+          </button>
+
+          <button
+            onClick={handleDisconnect}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium"
+          >
+            Disconnect
           </button>
 
           <div
