@@ -8,6 +8,13 @@ import {
   startReading,
   disconnectESP32,
 } from "../utils/bluetooth";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 
 export default function Dashboard() {
   const [summaryData, setSummaryData] = useState({
@@ -23,6 +30,9 @@ export default function Dashboard() {
     lastSync: "Not connected",
     lastSyncSub: "BLE idle",
     deviceStatus: "Disconnected",
+    deviceSub: "UroScale",
+    bagFill: "0%",
+    bagFillSub: "~0.00 mL / 2,000 mL",
   });
 
   const [flowRateHistory, setFlowRateHistory] = useState([]);
@@ -43,13 +53,17 @@ export default function Dashboard() {
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Connected",
+        deviceSub: "UroScale",
         lastSync: "Just now",
+        lastSyncSub: "BLE connected",
       }));
     } catch (error) {
       alert(error.message);
       setSummaryData((prev) => ({
         ...prev,
         deviceStatus: "Failed",
+        lastSync: "Connection failed",
+        lastSyncSub: "Check BLE device",
       }));
     } finally {
       setIsConnecting(false);
@@ -69,21 +83,64 @@ export default function Dashboard() {
         const volumeNum = parseFloat(parsed.volume_ml);
         const flowNum = parseFloat(parsed.flow_rate_mLs);
         const turbidityNum = parseFloat(parsed.turbidity_rntu);
+        const colorCode = parseInt(parsed.color_code, 10);
         const flowFlag = String(parsed.motion_flag) === "1";
+        const statusText = parsed.status || "UNKNOWN";
+
+        const alerts = [];
+        if (statusText !== "OK") alerts.push("Telemetry issue");
+        if (flowFlag) alerts.push("Flow active");
+        if (parsed.turbidity_sat === "YES") alerts.push("Turbidity saturated");
+        if (parsed.turbidity_bdl === "YES") alerts.push("Below detection");
+
+        const fillPercent = Number.isFinite(volumeNum)
+          ? Math.max(0, Math.min(100, Math.round((volumeNum / 2000) * 100)))
+          : null;
 
         setSummaryData((prev) => ({
           ...prev,
+
           volume: Number.isFinite(volumeNum)
             ? `${volumeNum.toFixed(2)} mL`
             : prev.volume,
+
           flowState: flowFlag ? "Active" : "Idle",
+
           flowSub: Number.isFinite(flowNum)
             ? `${flowNum.toFixed(2)} mL/s`
             : prev.flowSub,
-          turbidity: Number.isFinite(turbidityNum)
+
+          turbiditySub: Number.isFinite(turbidityNum)
             ? `${turbidityNum.toFixed(1)} rNTU`
+            : prev.turbiditySub,
+
+          turbidity: parsed.turbidity_label
+            ? `Label: ${parsed.turbidity_label}`
             : prev.turbidity,
+
+          color: parsed.color_value || prev.color,
+
+          colorSub: Number.isFinite(colorCode)
+            ? `Code: ${colorCode}`
+            : prev.colorSub,
+
+          alerts: String(alerts.length),
+          alertsSub: alerts.length > 0 ? alerts.join(" • ") : "No active alerts",
+
           lastSync: "Just now",
+          lastSyncSub: statusText,
+
+          deviceStatus: statusText === "OK" ? "Connected" : "Warning",
+          deviceSub: "UroScale",
+
+          bagFill:
+            fillPercent !== null && Number.isFinite(fillPercent)
+              ? `${fillPercent}%`
+              : prev.bagFill,
+
+          bagFillSub: Number.isFinite(volumeNum)
+            ? `~${volumeNum.toFixed(2)} mL / 2,000 mL`
+            : prev.bagFillSub,
         }));
 
         if (Number.isFinite(flowNum)) {
@@ -96,6 +153,13 @@ export default function Dashboard() {
     } catch (error) {
       alert(error.message);
       setIsReading(false);
+
+      setSummaryData((prev) => ({
+        ...prev,
+        deviceStatus: "Read Failed",
+        lastSync: "Read failed",
+        lastSyncSub: "Check parser / notifications",
+      }));
     }
   };
 
@@ -107,58 +171,78 @@ export default function Dashboard() {
     setSummaryData((prev) => ({
       ...prev,
       deviceStatus: "Disconnected",
-      flowState: "Idle",
       lastSync: "Disconnected",
+      lastSyncSub: "BLE stopped",
+      flowState: "Idle",
     }));
   };
 
   return (
     <div className="space-y-6">
-      {/* 🔴 ALWAYS VISIBLE BUTTON */}
-      <button
-        onClick={handleDisconnect}
-        className="fixed top-4 right-4 z-[9999] px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-bold shadow-lg"
-      >
-        Disconnect
-      </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            ICU Unit A — Active device monitoring overview
+          </p>
+        </div>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold">Dashboard</h1>
-        <p className="text-xs text-muted-foreground">
-          ICU Unit A — Monitoring Overview
-        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select defaultValue="pt-4821">
+            <SelectTrigger className="h-8 text-xs w-36">
+              <SelectValue placeholder="Patient" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pt-4821">PT-4821 • ICU-12</SelectItem>
+              <SelectItem value="pt-3907">PT-3907 • ICU-08</SelectItem>
+              <SelectItem value="pt-5134">PT-5134 • STEP-03</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select defaultValue="shift">
+            <SelectTrigger className="h-8 text-xs w-28">
+              <SelectValue placeholder="View" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="shift">Current Shift</SelectItem>
+              <SelectItem value="24h">Last 24h</SelectItem>
+              <SelectItem value="48h">Last 48h</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <button
+            onClick={handleConnect}
+            disabled={isConnecting || summaryData.deviceStatus === "Connected"}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-60 transition"
+          >
+            {isConnecting ? "Connecting..." : "Connect ESP32"}
+          </button>
+
+          <button
+            onClick={handleStartReading}
+            disabled={
+              isReading ||
+              (summaryData.deviceStatus !== "Connected" &&
+                summaryData.deviceStatus !== "Warning")
+            }
+            className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-60 transition"
+          >
+            {isReading ? "Reading..." : "Start Reading"}
+          </button>
+
+          <button
+            onClick={handleDisconnect}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition"
+          >
+            Disconnect
+          </button>
+        </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={handleConnect}
-          disabled={isConnecting || summaryData.deviceStatus === "Connected"}
-          className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm"
-        >
-          {isConnecting ? "Connecting..." : "Connect"}
-        </button>
-
-        <button
-          onClick={handleStartReading}
-          disabled={
-            isReading ||
-            summaryData.deviceStatus !== "Connected"
-          }
-          className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm"
-        >
-          {isReading ? "Reading..." : "Start"}
-        </button>
-      </div>
-
-      {/* Summary */}
       <SummaryCards summaryData={summaryData} />
 
-      {/* Graph */}
       <FlowRateChart data={flowRateHistory} />
 
-      {/* Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <RecentAlertsTable />
         <PatientDeviceTable />
