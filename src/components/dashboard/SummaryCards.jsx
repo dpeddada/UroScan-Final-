@@ -21,9 +21,9 @@ export default function SummaryCards({ summaryData }) {
       bg: "bg-chart-1/10",
     },
     {
-      label: "Flow State",
-      value: summaryData.flowState,
-      sub: summaryData.flowSub,
+      label: "Flow Rate",
+      value: summaryData.flowSub,
+      sub: summaryData.flowState,
       icon: Activity,
       color: "text-success",
       bg: "bg-success/10",
@@ -49,8 +49,8 @@ export default function SummaryCards({ summaryData }) {
       value: summaryData.alerts,
       sub: summaryData.alertsSub,
       icon: AlertTriangle,
-      color: "text-destructive",
-      bg: "bg-destructive/10",
+      color: summaryData.alerts !== "0" ? "text-destructive" : "text-success",
+      bg: summaryData.alerts !== "0" ? "bg-destructive/10" : "bg-success/10",
     },
     {
       label: "Last Sync",
@@ -65,8 +65,18 @@ export default function SummaryCards({ summaryData }) {
       value: summaryData.deviceStatus,
       sub: summaryData.deviceSub,
       icon: Wifi,
-      color: summaryData.deviceStatus === "Connected" ? "text-success" : "text-destructive",
-      bg: summaryData.deviceStatus === "Connected" ? "bg-success/10" : "bg-destructive/10",
+      color:
+        summaryData.deviceStatus === "Connected"
+          ? "text-success"
+          : summaryData.deviceStatus === "Warning"
+          ? "text-warning"
+          : "text-destructive",
+      bg:
+        summaryData.deviceStatus === "Connected"
+          ? "bg-success/10"
+          : summaryData.deviceStatus === "Warning"
+          ? "bg-warning/10"
+          : "bg-destructive/10",
     },
     {
       label: "Bag Fill",
@@ -81,15 +91,36 @@ export default function SummaryCards({ summaryData }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {cards.map((card) => (
-        <Card key={card.label} className="p-4 border border-border bg-card hover:shadow-md transition-shadow">
+        <Card
+          key={card.label}
+          className="p-4 border border-border bg-card hover:shadow-md transition-shadow"
+        >
           <div className="flex items-start justify-between mb-3">
-            <div className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center`}>
+            <div
+              className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center`}
+            >
               <card.icon className={`w-4.5 h-4.5 ${card.color}`} />
             </div>
+
+            {card.label === "Flow Rate" && (
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-success animate-live-pulse" />
+                <span className="text-[9px] font-semibold text-success uppercase tracking-wider">
+                  Live
+                </span>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-muted-foreground font-medium">{card.label}</p>
-          <p className="text-lg font-bold text-foreground mt-0.5">{card.value}</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">{card.sub}</p>
+
+          <p className="text-xs text-muted-foreground font-medium">
+            {card.label}
+          </p>
+          <p className="text-lg font-bold text-foreground mt-0.5">
+            {card.value}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            {card.sub}
+          </p>
         </Card>
       ))}
     </div>
