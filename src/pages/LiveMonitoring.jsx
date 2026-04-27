@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import FlowRateChart from "../components/dashboard/FlowRateChart";
+import VolumeChart from "../components/dashboard/VolumeChart";
+import TurbidityChart from "../components/dashboard/TurbidityChart";
+import ColorChart from "../components/dashboard/ColorChart";
 import FlowVisualizer from "../monitoring/FlowVisualizer";
 import SensorReadings from "../monitoring/SensorReadings";
 import EventLog from "../monitoring/EventLog";
@@ -15,7 +18,7 @@ export default function LiveMonitoring() {
   const [deviceStatus, setDeviceStatus] = useState("Disconnected");
   const [isConnecting, setIsConnecting] = useState(false);
   const [isReading, setIsReading] = useState(false);
-  const [flowRateHistory, setFlowRateHistory] = useState([]);
+  const [chartData, setChartData] = useState([]);
 
   const [currentReadings, setCurrentReadings] = useState({
     volume_ml: "0.00",
@@ -86,16 +89,17 @@ export default function LiveMonitoring() {
         const colorCode = parseInt(parsed.color_code, 10);
         const flowFlag = String(parsed.motion_flag) === "1";
 
+        const safeVolume = Number.isFinite(volume) ? volume : 0;
+        const safeFlowRate = Number.isFinite(flowRate) ? flowRate : 0;
+        const safeTurbidity = Number.isFinite(turbidity) ? turbidity : 0;
+        const safeColorCode = Number.isFinite(colorCode) ? colorCode : 0;
+
         setCurrentReadings({
-          volume_ml: Number.isFinite(volume) ? volume.toFixed(2) : "0.00",
-          flow_rate_mLs: Number.isFinite(flowRate)
-            ? flowRate.toFixed(2)
-            : "0.00",
-          turbidity_rntu: Number.isFinite(turbidity)
-            ? turbidity.toFixed(1)
-            : "0.0",
+          volume_ml: safeVolume.toFixed(2),
+          flow_rate_mLs: safeFlowRate.toFixed(2),
+          turbidity_rntu: safeTurbidity.toFixed(1),
           color_value: parsed.color_value || "NA",
-          color_code: Number.isFinite(colorCode) ? colorCode : -1,
+          color_code: safeColorCode,
           motion_flag: parsed.motion_flag || "0",
           status: parsed.status || "UNKNOWN",
         });
@@ -103,12 +107,16 @@ export default function LiveMonitoring() {
         setIsFlowing(flowFlag);
         setDeviceStatus(parsed.status === "OK" ? "Connected" : "Warning");
 
-        if (Number.isFinite(flowRate)) {
-          setFlowRateHistory((prev) => [
-            ...prev.slice(-59),
-            { time, flowRate },
-          ]);
-        }
+        setChartData((prev) => [
+          ...prev.slice(-59),
+          {
+            time,
+            flowRate: safeFlowRate,
+            volume: safeVolume,
+            turbidity: safeTurbidity,
+            colorCode: safeColorCode,
+          },
+        ]);
       });
     } catch (error) {
       alert(error.message);
@@ -119,6 +127,7 @@ export default function LiveMonitoring() {
 
   const handleDisconnect = async () => {
     await fullDisconnect();
+    setChartData([]);
   };
 
   return (
@@ -221,7 +230,12 @@ export default function LiveMonitoring() {
         </div>
       </Card>
 
-      <FlowRateChart data={flowRateHistory} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <FlowRateChart data={chartData} />
+        <VolumeChart data={chartData} />
+        <TurbidityChart data={chartData} />
+        <ColorChart data={chartData} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <FlowVisualizer isFlowing={isFlowing} />
