@@ -10,7 +10,28 @@ import {
   Gauge,
 } from "lucide-react";
 
+function getTurbidityStatus(value) {
+  const v = parseFloat(value);
+
+  if (!Number.isFinite(v) || v <= 1) return "Clear";
+  if (v <= 5) return "Slightly Cloudy";
+  if (v <= 15) return "Cloudy";
+  return "Very Cloudy";
+}
+
+function getTurbidityColor(value) {
+  const v = parseFloat(value);
+
+  if (!Number.isFinite(v) || v <= 1) return "text-success";
+  if (v <= 5) return "text-yellow-500";
+  if (v <= 15) return "text-orange-500";
+  return "text-destructive";
+}
+
 export default function SummaryCards({ summaryData }) {
+  const turbidityValue = summaryData.turbiditySub || "0.0 rNTU";
+  const turbidityStatus = getTurbidityStatus(turbidityValue);
+
   const cards = [
     {
       label: "Total Volume",
@@ -30,11 +51,12 @@ export default function SummaryCards({ summaryData }) {
     },
     {
       label: "Turbidity",
-      value: summaryData.turbiditySub,
-      sub: summaryData.turbidity,
+      value: turbidityStatus,
+      sub: turbidityValue,
       icon: Eye,
-      color: "text-chart-2",
+      color: getTurbidityColor(turbidityValue),
       bg: "bg-chart-2/10",
+      isTurbidity: true,
     },
     {
       label: "Urine Color",
@@ -115,9 +137,15 @@ export default function SummaryCards({ summaryData }) {
           <p className="text-xs text-muted-foreground font-medium">
             {card.label}
           </p>
-          <p className="text-lg font-bold text-foreground mt-0.5">
+
+          <p
+            className={`${
+              card.isTurbidity ? `text-2xl ${card.color}` : "text-lg text-foreground"
+            } font-bold mt-0.5`}
+          >
             {card.value}
           </p>
+
           <p className="text-[11px] text-muted-foreground mt-0.5">
             {card.sub}
           </p>
