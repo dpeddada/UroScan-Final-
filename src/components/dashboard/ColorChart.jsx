@@ -42,7 +42,7 @@ export default function ColorChart() {
         setData(makeSpectralData(next));
         return next;
       });
-    }, 20000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
