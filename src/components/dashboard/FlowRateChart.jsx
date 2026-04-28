@@ -11,49 +11,82 @@ import {
 } from "recharts";
 
 export default function FlowRateChart({ data = [] }) {
+  const chartData = data.map((point, index) => {
+    const baseFlow = Number(point.flowRate ?? 0);
+
+    return {
+      time: point.time ?? `${index * 20}`,
+      noFlow: 0,
+      lowFlow: point.lowFlow ?? baseFlow * 0.5,
+      mediumFlow: point.mediumFlow ?? baseFlow,
+      highFlow: point.highFlow ?? baseFlow * 1.5,
+    };
+  });
+
   return (
     <Card className="p-5 border border-border bg-white">
-      <h3 className="text-center text-base font-semibold mb-3">
+      <h3 className="text-center text-base font-semibold mb-3 text-black">
         Instantaneous Flow Rate vs Time
       </h3>
 
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={data}
-            margin={{ top: 10, right: 20, left: 10, bottom: 25 }}
+            data={chartData}
+            margin={{ top: 15, right: 25, left: 15, bottom: 30 }}
           >
-            <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+            <CartesianGrid stroke="#d1d5db" strokeDasharray="3 3" />
 
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 11, fill: "#111827" }}
+              axisLine={{ stroke: "#111827" }}
+              tickLine={{ stroke: "#111827" }}
               label={{
                 value: "Time (s)",
                 position: "insideBottom",
-                offset: -10,
+                offset: -15,
+                fill: "#111827",
+                fontSize: 12,
               }}
             />
 
             <YAxis
-              domain={[0, 30]}
-              tick={{ fontSize: 11 }}
+              domain={[0, 8]}
+              tick={{ fontSize: 11, fill: "#111827" }}
+              axisLine={{ stroke: "#111827" }}
+              tickLine={{ stroke: "#111827" }}
               label={{
                 value: "Flow Rate (mL/s)",
                 angle: -90,
                 position: "insideLeft",
+                fill: "#111827",
+                fontSize: 12,
+                dy: 45,
               }}
             />
 
-            <Tooltip />
-            <Legend verticalAlign="top" align="left" />
+            <Tooltip
+              formatter={(value) => `${Number(value).toFixed(2)} mL/s`}
+              contentStyle={{
+                backgroundColor: "white",
+                border: "1px solid #d1d5db",
+                fontSize: "12px",
+              }}
+            />
+
+            <Legend
+              verticalAlign="top"
+              align="center"
+              wrapperStyle={{ fontSize: "12px" }}
+            />
 
             <Line
               name="No Flow"
               type="monotone"
               dataKey="noFlow"
               stroke="#7f7f7f"
-              strokeWidth={3}
+              strokeWidth={2.5}
               dot={false}
               isAnimationActive={false}
             />
@@ -63,7 +96,7 @@ export default function FlowRateChart({ data = [] }) {
               type="monotone"
               dataKey="lowFlow"
               stroke="#1f77b4"
-              strokeWidth={3}
+              strokeWidth={2.5}
               dot={false}
               isAnimationActive={false}
             />
@@ -73,7 +106,7 @@ export default function FlowRateChart({ data = [] }) {
               type="monotone"
               dataKey="mediumFlow"
               stroke="#ff7f0e"
-              strokeWidth={3}
+              strokeWidth={2.5}
               dot={false}
               isAnimationActive={false}
             />
@@ -83,7 +116,7 @@ export default function FlowRateChart({ data = [] }) {
               type="monotone"
               dataKey="highFlow"
               stroke="#d62728"
-              strokeWidth={3}
+              strokeWidth={2.5}
               dot={false}
               isAnimationActive={false}
             />
