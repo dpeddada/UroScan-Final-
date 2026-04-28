@@ -7,29 +7,81 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 export default function TurbidityChart({ data = [] }) {
-  return (
-    <Card className="p-5 border border-border">
-      <h3 className="text-sm font-semibold">Turbidity vs Time</h3>
-      <p className="text-[11px] text-muted-foreground mb-4">
-        X-axis: Time | Y-axis: Turbidity (rNTU)
-      </p>
+  const chartData = data.map((point, index) => ({
+    time: point.time ?? `${index * 20}`,
+    turbidity: Number(point.turbidity ?? 0),
+  }));
 
-      <div className="h-56">
+  return (
+    <Card className="p-5 border border-border bg-white">
+      <h3 className="text-center text-base font-semibold mb-3 text-black">
+        Turbidity vs Time
+      </h3>
+
+      <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" label={{ value: "Time", position: "insideBottom", offset: -5 }} />
-            <YAxis label={{ value: "Turbidity (rNTU)", angle: -90, position: "insideLeft" }} />
-            <Tooltip />
+          <LineChart
+            data={chartData}
+            margin={{ top: 15, right: 25, left: 15, bottom: 30 }}
+          >
+            <CartesianGrid stroke="#d1d5db" strokeDasharray="3 3" />
+
+            <XAxis
+              dataKey="time"
+              tick={{ fontSize: 11, fill: "#111827" }}
+              axisLine={{ stroke: "#111827" }}
+              tickLine={{ stroke: "#111827" }}
+              label={{
+                value: "Time (s)",
+                position: "insideBottom",
+                offset: -15,
+                fill: "#111827",
+                fontSize: 12,
+              }}
+            />
+
+            <YAxis
+              domain={[0, "auto"]}
+              tick={{ fontSize: 11, fill: "#111827" }}
+              axisLine={{ stroke: "#111827" }}
+              tickLine={{ stroke: "#111827" }}
+              label={{
+                value: "Turbidity (rNTU)",
+                angle: -90,
+                position: "insideLeft",
+                fill: "#111827",
+                fontSize: 12,
+                dy: 35,
+              }}
+            />
+
+            <Tooltip
+              formatter={(value) => `${Number(value).toFixed(1)} rNTU`}
+              contentStyle={{
+                backgroundColor: "white",
+                border: "1px solid #d1d5db",
+                fontSize: "12px",
+              }}
+            />
+
+            <Legend
+              verticalAlign="top"
+              align="center"
+              wrapperStyle={{ fontSize: "12px" }}
+            />
+
             <Line
+              name="Turbidity"
               type="monotone"
               dataKey="turbidity"
               stroke="#14b8a6"
-              strokeWidth={2}
-              dot={false}
+              strokeWidth={2.5}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
               isAnimationActive={false}
             />
           </LineChart>
