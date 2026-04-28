@@ -4,7 +4,6 @@ import VolumeChart from "../components/dashboard/VolumeChart";
 import TurbidityChart from "../components/dashboard/TurbidityChart";
 import ColorChart from "../components/dashboard/ColorChart";
 import FlowVisualizer from "../monitoring/FlowVisualizer";
-import SensorReadings from "../monitoring/SensorReadings";
 import EventLog from "../monitoring/EventLog";
 import { Card } from "../components/ui/card";
 import {
@@ -30,30 +29,6 @@ export default function LiveMonitoring() {
     motion_flag: "0",
     status: "IDLE",
   });
-
-  const generateDemoPoint = () => {
-    const time = new Date().toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-
-    const lastVolume =
-      chartData.length > 0 ? chartData[chartData.length - 1].volume : 0;
-
-    const flowRate = 2.5 + (Math.random() - 0.5) * 0.8;
-    const volume = lastVolume + flowRate * 20 + Math.random() * 5;
-    const turbidity = 45 + (Math.random() - 0.5) * 15;
-    const colorCode = Math.floor(Math.random() * 5);
-
-    return {
-      time,
-      flowRate,
-      volume,
-      turbidity,
-      colorCode,
-    };
-  };
 
   const resetLiveState = () => {
     setIsReading(false);
@@ -87,27 +62,52 @@ export default function LiveMonitoring() {
   useEffect(() => {
     if (!isDemoMode) return;
 
-    const interval = setInterval(() => {
-      const point = generateDemoPoint();
+    const addDemoPoint = () => {
+      const time = new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
 
-      setCurrentReadings({
-        volume_ml: point.volume.toFixed(2),
-        flow_rate_mLs: point.flowRate.toFixed(2),
-        turbidity_rntu: point.turbidity.toFixed(1),
-        color_value: "Demo",
-        color_code: point.colorCode,
-        motion_flag: "1",
-        status: "DEMO",
+      const flowRate = 2.5 + (Math.random() - 0.5) * 1.8;
+      const turbidity = 45 + (Math.random() - 0.5) * 35;
+      const colorCode = Math.floor(Math.random() * 6);
+
+      setChartData((prev) => {
+        const lastVolume = prev.length > 0 ? prev[prev.length - 1].volume : 0;
+        const volume = lastVolume + flowRate * 20 + Math.random() * 20;
+
+        const point = {
+          time,
+          flowRate,
+          volume,
+          turbidity,
+          colorCode,
+        };
+
+        setCurrentReadings({
+          volume_ml: volume.toFixed(2),
+          flow_rate_mLs: flowRate.toFixed(2),
+          turbidity_rntu: turbidity.toFixed(1),
+          color_value: "Demo",
+          color_code: colorCode,
+          motion_flag: "1",
+          status: "DEMO",
+        });
+
+        return [...prev.slice(-59), point];
       });
 
       setIsFlowing(true);
       setDeviceStatus("Demo Mode");
+    };
 
-      setChartData((prev) => [...prev.slice(-59), point]);
-    }, 20000);
+    addDemoPoint();
+
+    const interval = setInterval(addDemoPoint, 20000);
 
     return () => clearInterval(interval);
-  }, [isDemoMode, chartData]);
+  }, [isDemoMode]);
 
   const handleConnect = async () => {
     try {
@@ -125,24 +125,11 @@ export default function LiveMonitoring() {
   };
 
   const handleUseDemoData = () => {
+    setChartData([]);
     setIsDemoMode(true);
     setIsReading(false);
     setIsFlowing(true);
     setDeviceStatus("Demo Mode");
-
-    const point = generateDemoPoint();
-
-    setCurrentReadings({
-      volume_ml: point.volume.toFixed(2),
-      flow_rate_mLs: point.flowRate.toFixed(2),
-      turbidity_rntu: point.turbidity.toFixed(1),
-      color_value: "Demo",
-      color_code: point.colorCode,
-      motion_flag: "1",
-      status: "DEMO",
-    });
-
-    setChartData((prev) => [...prev.slice(-59), point]);
   };
 
   const handleStartReading = async () => {
@@ -318,9 +305,8 @@ export default function LiveMonitoring() {
         <ColorChart data={chartData} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <FlowVisualizer isFlowing={isFlowing} />
-        <SensorReadings />
       </div>
 
       <EventLog />
