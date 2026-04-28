@@ -11,22 +11,15 @@ import {
 } from "recharts";
 
 export default function FlowRateChart({ data = [] }) {
-  const chartData = data.map((point, index) => {
-    const baseFlow = Number(point.flowRate ?? 0);
-
-    return {
-      time: point.time ?? `${index * 20}`,
-      noFlow: 0,
-      lowFlow: point.lowFlow ?? baseFlow * 0.5,
-      mediumFlow: point.mediumFlow ?? baseFlow,
-      highFlow: point.highFlow ?? baseFlow * 1.5,
-    };
-  });
+  const chartData = data.map((point, index) => ({
+    time: point.time ?? `${index * 20}`,
+    flowRate: Number(point.flowRate ?? 0),
+  }));
 
   return (
     <Card className="p-5 border border-border bg-white">
       <h3 className="text-center text-base font-semibold mb-3 text-black">
-        Instantaneous Flow Rate vs Time
+        Flow Rate vs Time
       </h3>
 
       <div className="h-72">
@@ -52,7 +45,7 @@ export default function FlowRateChart({ data = [] }) {
             />
 
             <YAxis
-              domain={[0, 8]}
+              domain={[0, "auto"]}
               tick={{ fontSize: 11, fill: "#111827" }}
               axisLine={{ stroke: "#111827" }}
               tickLine={{ stroke: "#111827" }}
@@ -82,42 +75,13 @@ export default function FlowRateChart({ data = [] }) {
             />
 
             <Line
-              name="No Flow"
+              name="Flow Rate"
               type="monotone"
-              dataKey="noFlow"
-              stroke="#7f7f7f"
-              strokeWidth={2.5}
-              dot={false}
-              isAnimationActive={false}
-            />
-
-            <Line
-              name="Low Flow"
-              type="monotone"
-              dataKey="lowFlow"
+              dataKey="flowRate"
               stroke="#1f77b4"
               strokeWidth={2.5}
-              dot={false}
-              isAnimationActive={false}
-            />
-
-            <Line
-              name="Medium Flow"
-              type="monotone"
-              dataKey="mediumFlow"
-              stroke="#ff7f0e"
-              strokeWidth={2.5}
-              dot={false}
-              isAnimationActive={false}
-            />
-
-            <Line
-              name="High Flow"
-              type="monotone"
-              dataKey="highFlow"
-              stroke="#d62728"
-              strokeWidth={2.5}
-              dot={false}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
               isAnimationActive={false}
             />
           </LineChart>
