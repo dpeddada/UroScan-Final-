@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Card } from "../ui/card";
 import {
   LineChart,
@@ -11,63 +10,33 @@ import {
   Legend,
 } from "recharts";
 
-const wavelengths = Array.from({ length: 36 }, (_, i) => 400 + i * 10);
-const wavelengthTicks = [400, 450, 500, 550, 600, 650, 700, 750];
-
-const makeSpectralData = (shift = 0) => {
-  return wavelengths.map((wavelength) => {
-    const waveShift = Math.sin(shift) * 45;
-    const intensityShift = 1 + Math.sin(shift * 1.4) * 0.35;
-
-    return {
-      wavelength,
-      spectralResponse:
-        0.85 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (570 + waveShift)) / 85, 2)),
-    };
-  });
-};
-
-export default function ColorChart() {
-  const [data, setData] = useState(makeSpectralData(0));
-
-  useEffect(() => {
-    let count = 0;
-
-    const interval = setInterval(() => {
-      count += 1;
-      setData(makeSpectralData(count));
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+export default function ColorChart({ data = [] }) {
+  const chartData = data.map((point, index) => ({
+    time: point.time ?? `${index * 20}`,
+    colorIntensity: Number(point.colorIntensity ?? 0),
+  }));
 
   return (
     <Card className="p-5 border border-border bg-white">
       <h3 className="text-center text-base font-semibold mb-3 text-black">
-        Spectral Response vs Wavelength
+        Color Sensor Intensity vs Time
       </h3>
 
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={data}
+            data={chartData}
             margin={{ top: 15, right: 25, left: 15, bottom: 30 }}
           >
             <CartesianGrid stroke="#d1d5db" strokeDasharray="3 3" />
 
             <XAxis
-              dataKey="wavelength"
-              type="number"
-              domain={[400, 750]}
-              ticks={wavelengthTicks}
-              interval={0}
+              dataKey="time"
               tick={{ fontSize: 11, fill: "#111827" }}
               axisLine={{ stroke: "#111827" }}
               tickLine={{ stroke: "#111827" }}
               label={{
-                value: "Wavelength (nm)",
+                value: "Time (s)",
                 position: "insideBottom",
                 offset: -15,
                 fill: "#111827",
@@ -76,12 +45,12 @@ export default function ColorChart() {
             />
 
             <YAxis
-              domain={[0, 1.2]}
+              domain={[0, 500]}
               tick={{ fontSize: 11, fill: "#111827" }}
               axisLine={{ stroke: "#111827" }}
               tickLine={{ stroke: "#111827" }}
               label={{
-                value: "Spectral Response (a.u.)",
+                value: "Sensor Intensity",
                 angle: -90,
                 position: "insideLeft",
                 fill: "#111827",
@@ -91,8 +60,7 @@ export default function ColorChart() {
             />
 
             <Tooltip
-              formatter={(value) => Number(value).toFixed(3)}
-              labelFormatter={(value) => `${value} nm`}
+              formatter={(value) => `${Number(value).toFixed(1)}`}
               contentStyle={{
                 backgroundColor: "white",
                 border: "1px solid #d1d5db",
@@ -107,12 +75,13 @@ export default function ColorChart() {
             />
 
             <Line
-              name="Spectral Response"
+              name="Color Sensor Intensity"
               type="monotone"
-              dataKey="spectralResponse"
+              dataKey="colorIntensity"
               stroke="#1f77b4"
               strokeWidth={2.5}
-              dot={false}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
               isAnimationActive={false}
             />
           </LineChart>
