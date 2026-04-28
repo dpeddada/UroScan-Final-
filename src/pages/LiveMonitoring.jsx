@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import FlowRateChart from "../components/dashboard/FlowRateChart";
-import PeakFlowRateChart from "../components/dashboard/PeakFlowRateChart";
 import VolumeChart from "../components/dashboard/VolumeChart";
 import TurbidityChart from "../components/dashboard/TurbidityChart";
 import ColorChart from "../components/dashboard/ColorChart";
@@ -302,7 +301,6 @@ export default function LiveMonitoring() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <FlowRateChart data={chartData} />
-        <PeakFlowRateChart data={chartData} />
         <VolumeChart data={chartData} />
         <TurbidityChart data={chartData} />
         <ColorChart data={chartData} />
