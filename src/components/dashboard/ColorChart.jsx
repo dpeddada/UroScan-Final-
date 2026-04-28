@@ -16,40 +16,17 @@ const wavelengthTicks = [400, 450, 500, 550, 600, 650, 700, 750];
 
 const makeSpectralData = (shift = 0) => {
   return wavelengths.map((wavelength) => {
-    const waveShift = Math.sin(shift / 2) * 10;
-    const intensityShift = 1 + Math.sin(shift / 3) * 0.08;
+    const waveShift = Math.sin(shift) * 45;
+    const intensityShift = 1 + Math.sin(shift * 1.4) * 0.35;
 
     return {
       wavelength,
-      c0:
-        0.2 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (500 + waveShift)) / 70, 2)),
-
-      c25:
-        0.32 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (512 + waveShift)) / 72, 2)),
-
-      c5:
-        0.44 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (524 + waveShift)) / 74, 2)),
-
-      c75:
-        0.56 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (538 + waveShift)) / 76, 2)),
-
-      c10:
-        0.68 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (552 + waveShift)) / 80, 2)),
-
-      c15:
-        0.85 *
-        intensityShift *
-        Math.exp(-Math.pow((wavelength - (570 + waveShift)) / 85, 2)),
+      c0: 0.2 * intensityShift * Math.exp(-Math.pow((wavelength - (500 + waveShift)) / 70, 2)),
+      c25: 0.32 * intensityShift * Math.exp(-Math.pow((wavelength - (512 + waveShift)) / 72, 2)),
+      c5: 0.44 * intensityShift * Math.exp(-Math.pow((wavelength - (524 + waveShift)) / 74, 2)),
+      c75: 0.56 * intensityShift * Math.exp(-Math.pow((wavelength - (538 + waveShift)) / 76, 2)),
+      c10: 0.68 * intensityShift * Math.exp(-Math.pow((wavelength - (552 + waveShift)) / 80, 2)),
+      c15: 0.85 * intensityShift * Math.exp(-Math.pow((wavelength - (570 + waveShift)) / 85, 2)),
     };
   });
 };
@@ -60,12 +37,15 @@ export default function ColorChart() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setUpdateCount((prev) => prev + 1);
-      setData(makeSpectralData(updateCount + 1));
+      setUpdateCount((prev) => {
+        const next = prev + 1;
+        setData(makeSpectralData(next));
+        return next;
+      });
     }, 20000);
 
     return () => clearInterval(interval);
-  }, [updateCount]);
+  }, []);
 
   return (
     <Card className="p-5 border border-border bg-white">
@@ -75,10 +55,7 @@ export default function ColorChart() {
 
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 15, right: 25, left: 15, bottom: 30 }}
-          >
+          <LineChart data={data} margin={{ top: 15, right: 25, left: 15, bottom: 30 }}>
             <CartesianGrid stroke="#d1d5db" strokeDasharray="3 3" />
 
             <XAxis
@@ -100,7 +77,7 @@ export default function ColorChart() {
             />
 
             <YAxis
-              domain={[0, 1]}
+              domain={[0, 1.2]}
               tick={{ fontSize: 11, fill: "#111827" }}
               axisLine={{ stroke: "#111827" }}
               tickLine={{ stroke: "#111827" }}
@@ -124,11 +101,7 @@ export default function ColorChart() {
               }}
             />
 
-            <Legend
-              verticalAlign="top"
-              align="center"
-              wrapperStyle={{ fontSize: "12px" }}
-            />
+            <Legend verticalAlign="top" align="center" wrapperStyle={{ fontSize: "12px" }} />
 
             <Line name="0%" type="monotone" dataKey="c0" stroke="#6b7280" strokeWidth={2.3} dot={false} isAnimationActive={false} />
             <Line name="2.5%" type="monotone" dataKey="c25" stroke="#1f77b4" strokeWidth={2.3} dot={false} isAnimationActive={false} />
