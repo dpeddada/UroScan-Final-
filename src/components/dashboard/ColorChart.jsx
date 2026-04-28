@@ -19,22 +19,12 @@ const makeSpectralData = () => {
 
     return {
       wavelength,
-      c0:
-        0.25 *
-          Math.exp(-Math.pow((wavelength - 500) / 70, 2)) +
-        noise,
-      c5:
-        0.45 *
-          Math.exp(-Math.pow((wavelength - 520) / 75, 2)) +
-        noise,
-      c10:
-        0.65 *
-          Math.exp(-Math.pow((wavelength - 545) / 80, 2)) +
-        noise,
-      c15:
-        0.85 *
-          Math.exp(-Math.pow((wavelength - 570) / 85, 2)) +
-        noise,
+      c0: 0.2 * Math.exp(-Math.pow((wavelength - 500) / 70, 2)) + noise,
+      c25: 0.32 * Math.exp(-Math.pow((wavelength - 512) / 72, 2)) + noise,
+      c5: 0.44 * Math.exp(-Math.pow((wavelength - 524) / 74, 2)) + noise,
+      c75: 0.56 * Math.exp(-Math.pow((wavelength - 538) / 76, 2)) + noise,
+      c10: 0.68 * Math.exp(-Math.pow((wavelength - 552) / 80, 2)) + noise,
+      c15: 0.85 * Math.exp(-Math.pow((wavelength - 570) / 85, 2)) + noise,
     };
   });
 };
@@ -111,11 +101,12 @@ export default function ColorChart() {
               wrapperStyle={{ fontSize: "12px" }}
             />
 
-            <Line name="0%" dataKey="c0" stroke="#6b7280" strokeWidth={2.5} dot={false} />
-            <Line name="5%" dataKey="c5" stroke="#1f77b4" strokeWidth={2.5} dot={false} />
-            <Line name="10%" dataKey="c10" stroke="#ff7f0e" strokeWidth={2.5} dot={false} />
-            <Line name="15%" dataKey="c15" stroke="#d62728" strokeWidth={2.5} dot={false} />
-
+            <Line name="0%" type="monotone" dataKey="c0" stroke="#6b7280" strokeWidth={2.3} dot={false} isAnimationActive={false} />
+            <Line name="2.5%" type="monotone" dataKey="c25" stroke="#1f77b4" strokeWidth={2.3} dot={false} isAnimationActive={false} />
+            <Line name="5%" type="monotone" dataKey="c5" stroke="#2ca02c" strokeWidth={2.3} dot={false} isAnimationActive={false} />
+            <Line name="7.5%" type="monotone" dataKey="c75" stroke="#ff7f0e" strokeWidth={2.3} dot={false} isAnimationActive={false} />
+            <Line name="10%" type="monotone" dataKey="c10" stroke="#9467bd" strokeWidth={2.3} dot={false} isAnimationActive={false} />
+            <Line name="15%" type="monotone" dataKey="c15" stroke="#d62728" strokeWidth={2.3} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
