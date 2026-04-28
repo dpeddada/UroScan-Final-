@@ -15,24 +15,36 @@ const wavelengths = Array.from({ length: 36 }, (_, i) => 400 + i * 10);
 
 const makeSpectralData = () => {
   return wavelengths.map((wavelength) => {
-    const noise = () => (Math.random() - 0.5) * 0.03;
+    const noise = (Math.random() - 0.5) * 0.03;
 
     return {
       wavelength,
-      c0: 0.25 * Math.exp(-((wavelength - 500) / 70) ** 2) + noise(),
-      c5: 0.45 * Math.exp(-((wavelength - 520) / 75) ** 2) + noise(),
-      c10: 0.65 * Math.exp(-((wavelength - 545) / 80) ** 2) + noise(),
-      c15: 0.85 * Math.exp(-((wavelength - 570) / 85) ** 2) + noise(),
+      c0:
+        0.25 *
+          Math.exp(-Math.pow((wavelength - 500) / 70, 2)) +
+        noise,
+      c5:
+        0.45 *
+          Math.exp(-Math.pow((wavelength - 520) / 75, 2)) +
+        noise,
+      c10:
+        0.65 *
+          Math.exp(-Math.pow((wavelength - 545) / 80, 2)) +
+        noise,
+      c15:
+        0.85 *
+          Math.exp(-Math.pow((wavelength - 570) / 85, 2)) +
+        noise,
     };
   });
 };
 
 export default function ColorChart() {
-  const [spectralData, setSpectralData] = useState(makeSpectralData());
+  const [data, setData] = useState(makeSpectralData());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSpectralData(makeSpectralData());
+      setData(makeSpectralData());
     }, 20000);
 
     return () => clearInterval(interval);
@@ -47,7 +59,7 @@ export default function ColorChart() {
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={spectralData}
+            data={data}
             margin={{ top: 15, right: 25, left: 15, bottom: 30 }}
           >
             <CartesianGrid stroke="#d1d5db" strokeDasharray="3 3" />
@@ -99,10 +111,11 @@ export default function ColorChart() {
               wrapperStyle={{ fontSize: "12px" }}
             />
 
-            <Line name="0%" type="monotone" dataKey="c0" stroke="#6b7280" strokeWidth={2.5} dot={false} isAnimationActive={false} />
-            <Line name="5%" type="monotone" dataKey="c5" stroke="#1f77b4" strokeWidth={2.5} dot={false} isAnimationActive={false} />
-            <Line name="10%" type="monotone" dataKey="c10" stroke="#ff7f0e" strokeWidth={2.5} dot={false} isAnimationActive={false} />
-            <Line name="15%" type="monotone" dataKey="c15" stroke="#d62728" strokeWidth={2.5} dot={false} isAnimationActive={false} />
+            <Line name="0%" dataKey="c0" stroke="#6b7280" strokeWidth={2.5} dot={false} />
+            <Line name="5%" dataKey="c5" stroke="#1f77b4" strokeWidth={2.5} dot={false} />
+            <Line name="10%" dataKey="c10" stroke="#ff7f0e" strokeWidth={2.5} dot={false} />
+            <Line name="15%" dataKey="c15" stroke="#d62728" strokeWidth={2.5} dot={false} />
+
           </LineChart>
         </ResponsiveContainer>
       </div>
