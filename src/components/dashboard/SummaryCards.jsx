@@ -8,29 +8,42 @@ import {
   RefreshCw,
   Wifi,
   Gauge,
+  TrendingUp,
 } from "lucide-react";
+
+function cleanTurbidityLabel(label) {
+  if (!label) return null;
+
+  return label
+    .replaceAll("_", " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 function getTurbidityStatus(value) {
   const v = parseFloat(value);
 
-  if (!Number.isFinite(v) || v <= 1) return "Clear";
-  if (v <= 5) return "Slightly Cloudy";
-  if (v <= 15) return "Cloudy";
+  if (!Number.isFinite(v) || v < 120) return "Clear";
+  if (v < 200) return "Slightly Cloudy";
+  if (v < 600) return "Cloudy";
   return "Very Cloudy";
 }
 
 function getTurbidityColor(value) {
   const v = parseFloat(value);
 
-  if (!Number.isFinite(v) || v <= 1) return "text-success";
-  if (v <= 5) return "text-yellow-500";
-  if (v <= 15) return "text-orange-500";
+  if (!Number.isFinite(v) || v < 120) return "text-success";
+  if (v < 200) return "text-yellow-500";
+  if (v < 600) return "text-orange-500";
   return "text-destructive";
 }
 
 export default function SummaryCards({ summaryData }) {
   const turbidityValue = summaryData.turbiditySub || "0.0 rNTU";
-  const turbidityStatus = getTurbidityStatus(turbidityValue);
+
+  const turbidityStatus =
+    cleanTurbidityLabel(summaryData.turbidityLabel) ||
+    getTurbidityStatus(turbidityValue);
 
   const cards = [
     {
@@ -48,6 +61,14 @@ export default function SummaryCards({ summaryData }) {
       icon: Activity,
       color: "text-success",
       bg: "bg-success/10",
+    },
+    {
+      label: "Peak Flow Rate",
+      value: summaryData.peakFlowRate || "0.00 mL/s",
+      sub: "Maximum recorded",
+      icon: TrendingUp,
+      color: "text-red-600",
+      bg: "bg-red-100",
     },
     {
       label: "Turbidity",
@@ -92,12 +113,16 @@ export default function SummaryCards({ summaryData }) {
           ? "text-success"
           : summaryData.deviceStatus === "Warning"
           ? "text-warning"
+          : summaryData.deviceStatus === "Demo Mode"
+          ? "text-purple-600"
           : "text-destructive",
       bg:
         summaryData.deviceStatus === "Connected"
           ? "bg-success/10"
           : summaryData.deviceStatus === "Warning"
           ? "bg-warning/10"
+          : summaryData.deviceStatus === "Demo Mode"
+          ? "bg-purple-100"
           : "bg-destructive/10",
     },
     {
@@ -111,7 +136,7 @@ export default function SummaryCards({ summaryData }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
       {cards.map((card) => (
         <Card
           key={card.label}
@@ -140,7 +165,9 @@ export default function SummaryCards({ summaryData }) {
 
           <p
             className={`${
-              card.isTurbidity ? `text-2xl ${card.color}` : "text-lg text-foreground"
+              card.isTurbidity
+                ? `text-2xl ${card.color}`
+                : "text-lg text-foreground"
             } font-bold mt-0.5`}
           >
             {card.value}
