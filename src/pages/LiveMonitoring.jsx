@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import FlowRateChart from "../components/dashboard/FlowRateChart";
+import PeakFlowRateChart from "../components/dashboard/PeakFlowRateChart";
 import VolumeChart from "../components/dashboard/VolumeChart";
 import TurbidityChart from "../components/dashboard/TurbidityChart";
 import ColorChart from "../components/dashboard/ColorChart";
@@ -44,9 +45,7 @@ export default function LiveMonitoring() {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        fullDisconnect();
-      }
+      if (document.hidden) fullDisconnect();
     };
 
     window.addEventListener("beforeunload", fullDisconnect);
@@ -70,6 +69,7 @@ export default function LiveMonitoring() {
       });
 
       const flowRate = 2.5 + (Math.random() - 0.5) * 1.8;
+      const peakFlowRate = flowRate + 0.8 + Math.random() * 1.4;
       const turbidity = 45 + (Math.random() - 0.5) * 35;
       const colorCode = Math.floor(Math.random() * 6);
 
@@ -80,6 +80,7 @@ export default function LiveMonitoring() {
         const point = {
           time,
           flowRate,
+          peakFlowRate,
           volume,
           turbidity,
           colorCode,
@@ -103,7 +104,6 @@ export default function LiveMonitoring() {
     };
 
     addDemoPoint();
-
     const interval = setInterval(addDemoPoint, 20000);
 
     return () => clearInterval(interval);
@@ -152,6 +152,7 @@ export default function LiveMonitoring() {
 
         const safeVolume = Number.isFinite(volume) ? volume : 0;
         const safeFlowRate = Number.isFinite(flowRate) ? flowRate : 0;
+        const safePeakFlowRate = safeFlowRate * 1.25;
         const safeTurbidity = Number.isFinite(turbidity) ? turbidity : 0;
         const safeColorCode = Number.isFinite(colorCode) ? colorCode : 0;
 
@@ -173,6 +174,7 @@ export default function LiveMonitoring() {
           {
             time,
             flowRate: safeFlowRate,
+            peakFlowRate: safePeakFlowRate,
             volume: safeVolume,
             turbidity: safeTurbidity,
             colorCode: safeColorCode,
@@ -300,6 +302,7 @@ export default function LiveMonitoring() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <FlowRateChart data={chartData} />
+        <PeakFlowRateChart data={chartData} />
         <VolumeChart data={chartData} />
         <TurbidityChart data={chartData} />
         <ColorChart data={chartData} />
