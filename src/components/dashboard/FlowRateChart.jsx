@@ -19,22 +19,29 @@ export default function FlowRateChart({ data = [] }) {
 
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 10, right: 25, left: 20, bottom: 25 }}>
+          <LineChart
+            data={data}
+            margin={{ top: 10, right: 20, left: 10, bottom: 25 }}
+          >
             <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
 
             <XAxis
               dataKey="time"
-              tick={{ fontSize: 11, fill: "#374151" }}
-              label={{ value: "Time (s)", position: "insideBottom", offset: -10 }}
+              tick={{ fontSize: 11 }}
+              label={{
+                value: "Time (s)",
+                position: "insideBottom",
+                offset: -10,
+              }}
             />
 
             <YAxis
-              tick={{ fontSize: 11, fill: "#374151" }}
+              domain={[0, 30]}
+              tick={{ fontSize: 11 }}
               label={{
                 value: "Flow Rate (mL/s)",
                 angle: -90,
                 position: "insideLeft",
-                offset: -5,
               }}
             />
 
@@ -42,10 +49,40 @@ export default function FlowRateChart({ data = [] }) {
             <Legend verticalAlign="top" align="left" />
 
             <Line
-              name="Flow Rate"
+              name="No Flow"
               type="monotone"
-              dataKey="flowRate"
+              dataKey="noFlow"
+              stroke="#7f7f7f"
+              strokeWidth={3}
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            <Line
+              name="Low Flow"
+              type="monotone"
+              dataKey="lowFlow"
               stroke="#1f77b4"
+              strokeWidth={3}
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            <Line
+              name="Medium Flow"
+              type="monotone"
+              dataKey="mediumFlow"
+              stroke="#ff7f0e"
+              strokeWidth={3}
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            <Line
+              name="High Flow"
+              type="monotone"
+              dataKey="highFlow"
+              stroke="#d62728"
               strokeWidth={3}
               dot={false}
               isAnimationActive={false}
