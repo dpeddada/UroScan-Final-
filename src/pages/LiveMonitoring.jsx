@@ -18,6 +18,7 @@ export default function LiveMonitoring() {
   const [deviceStatus, setDeviceStatus] = useState("Disconnected");
   const [isConnecting, setIsConnecting] = useState(false);
   const [isReading, setIsReading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [chartData, setChartData] = useState([]);
 
   const [currentReadings, setCurrentReadings] = useState({
@@ -30,9 +31,34 @@ export default function LiveMonitoring() {
     status: "IDLE",
   });
 
+  const generateDemoPoint = () => {
+    const time = new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    const lastVolume =
+      chartData.length > 0 ? chartData[chartData.length - 1].volume : 0;
+
+    const flowRate = 2.5 + (Math.random() - 0.5) * 0.8;
+    const volume = lastVolume + flowRate * 20 + Math.random() * 5;
+    const turbidity = 45 + (Math.random() - 0.5) * 15;
+    const colorCode = Math.floor(Math.random() * 5);
+
+    return {
+      time,
+      flowRate,
+      volume,
+      turbidity,
+      colorCode,
+    };
+  };
+
   const resetLiveState = () => {
     setIsReading(false);
     setIsFlowing(false);
+    setIsDemoMode(false);
     setDeviceStatus("Disconnected");
   };
 
@@ -58,8 +84,34 @@ export default function LiveMonitoring() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isDemoMode) return;
+
+    const interval = setInterval(() => {
+      const point = generateDemoPoint();
+
+      setCurrentReadings({
+        volume_ml: point.volume.toFixed(2),
+        flow_rate_mLs: point.flowRate.toFixed(2),
+        turbidity_rntu: point.turbidity.toFixed(1),
+        color_value: "Demo",
+        color_code: point.colorCode,
+        motion_flag: "1",
+        status: "DEMO",
+      });
+
+      setIsFlowing(true);
+      setDeviceStatus("Demo Mode");
+
+      setChartData((prev) => [...prev.slice(-59), point]);
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [isDemoMode, chartData]);
+
   const handleConnect = async () => {
     try {
+      setIsDemoMode(false);
       setIsConnecting(true);
       setDeviceStatus("Connecting...");
       await connectESP32();
@@ -72,8 +124,30 @@ export default function LiveMonitoring() {
     }
   };
 
+  const handleUseDemoData = () => {
+    setIsDemoMode(true);
+    setIsReading(false);
+    setIsFlowing(true);
+    setDeviceStatus("Demo Mode");
+
+    const point = generateDemoPoint();
+
+    setCurrentReadings({
+      volume_ml: point.volume.toFixed(2),
+      flow_rate_mLs: point.flowRate.toFixed(2),
+      turbidity_rntu: point.turbidity.toFixed(1),
+      color_value: "Demo",
+      color_code: point.colorCode,
+      motion_flag: "1",
+      status: "DEMO",
+    });
+
+    setChartData((prev) => [...prev.slice(-59), point]);
+  };
+
   const handleStartReading = async () => {
     try {
+      setIsDemoMode(false);
       setIsReading(true);
 
       await startReading((parsed) => {
@@ -158,6 +232,13 @@ export default function LiveMonitoring() {
             className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium disabled:opacity-60"
           >
             {isReading ? "Reading..." : "Start Reading"}
+          </button>
+
+          <button
+            onClick={handleUseDemoData}
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium"
+          >
+            Use Demo Data
           </button>
 
           <button
