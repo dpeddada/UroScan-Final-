@@ -8,12 +8,12 @@ let notifyHandler = null;
 const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const TX_CHAR_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
-function parseDataLine(line) {
-  if (!line || !line.startsWith("DATA,")) return null;
+function parseKeyValueLine(line, prefix) {
+  if (!line || !line.startsWith(prefix)) return null;
 
-  const payload = line.slice(5);
+  const payload = line.slice(prefix.length);
   const parts = payload.split(",");
-  const result = {};
+  const result = { lineType: prefix.replace(",", "") };
 
   for (const part of parts) {
     const eqIndex = part.indexOf("=");
@@ -21,10 +21,23 @@ function parseDataLine(line) {
 
     const key = part.slice(0, eqIndex).trim();
     const value = part.slice(eqIndex + 1).trim();
+
     result[key] = value;
   }
 
   return result;
+}
+
+function parseIncomingLine(line) {
+  if (line.startsWith("DATA,")) {
+    return parseKeyValueLine(line, "DATA,");
+  }
+
+  if (line.startsWith("SPECTRAL,")) {
+    return parseKeyValueLine(line, "SPECTRAL,");
+  }
+
+  return null;
 }
 
 export async function connectESP32() {
@@ -91,7 +104,8 @@ export async function startReading(onParsedData) {
         const line = rawLine.trim();
         if (!line) continue;
 
-        const parsed = parseDataLine(line);
+        const parsed = parseIncomingLine(line);
+
         if (parsed) {
           onParsedData(parsed);
         }
