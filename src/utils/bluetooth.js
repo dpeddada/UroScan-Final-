@@ -113,6 +113,7 @@ export async function startReading(onParsedData) {
     };
 
     await txCharacteristic.startNotifications();
+
     txCharacteristic.addEventListener(
       "characteristicvaluechanged",
       notifyHandler
