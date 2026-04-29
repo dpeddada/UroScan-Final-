@@ -20,6 +20,7 @@ export default function LiveMonitoring() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [chartData, setChartData] = useState([]);
   const [spectralData, setSpectralData] = useState([]);
+  const [alerts, setAlerts] = useState([]);
 
   const [currentReadings, setCurrentReadings] = useState({
     volume_ml: "0.00",
@@ -121,6 +122,14 @@ export default function LiveMonitoring() {
         },
       ]);
 
+      setAlerts([
+        {
+          severity: "warning",
+          time,
+          message: "Demo Mode Active",
+        },
+      ]);
+
       setIsFlowing(true);
       setDeviceStatus("Demo Mode");
     };
@@ -149,6 +158,7 @@ export default function LiveMonitoring() {
   const handleUseDemoData = () => {
     setChartData([]);
     setSpectralData([]);
+    setAlerts([]);
     setIsDemoMode(true);
     setIsReading(false);
     setIsFlowing(true);
@@ -206,6 +216,34 @@ export default function LiveMonitoring() {
         const safeTurbidity = Number.isFinite(turbidity) ? turbidity : 0;
         const safeColorCode = Number.isFinite(colorCode) ? colorCode : 0;
 
+        const newAlerts = [];
+
+        if (parsed.alert_turbidity === "1") {
+          newAlerts.push({ severity: "warning", time, message: "High Turbidity" });
+        }
+
+        if (parsed.alert_color === "1") {
+          newAlerts.push({ severity: "warning", time, message: "Abnormal Color" });
+        }
+
+        if (parsed.alert_flow === "1") {
+          newAlerts.push({ severity: "warning", time, message: "Flow Alert" });
+        }
+
+        if (parsed.alert_motion === "1") {
+          newAlerts.push({ severity: "warning", time, message: "Motion Detected" });
+        }
+
+        if (parsed.alert_message && parsed.alert_message !== "OK") {
+          newAlerts.push({
+            severity: parsed.alert_level === "WARNING" ? "warning" : "ok",
+            time,
+            message: parsed.alert_message,
+          });
+        }
+
+        setAlerts(newAlerts);
+
         setCurrentReadings({
           volume_ml: safeVolume.toFixed(2),
           flow_rate_mLs: safeFlowRate.toFixed(2),
@@ -242,6 +280,7 @@ export default function LiveMonitoring() {
     await fullDisconnect();
     setChartData([]);
     setSpectralData([]);
+    setAlerts([]);
   };
 
   return (
@@ -362,7 +401,7 @@ export default function LiveMonitoring() {
         <FlowVisualizer isFlowing={isFlowing} />
       </div>
 
-      <EventLog />
+      <EventLog alerts={alerts} />
     </div>
   );
 }
