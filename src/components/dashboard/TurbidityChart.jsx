@@ -19,7 +19,7 @@ export default function TurbidityChart({ data = [] }) {
   return (
     <Card className="p-5 border border-border bg-white">
       <h3 className="text-center text-base font-semibold mb-3 text-black">
-        Turbidity vs Time
+        Turbidity
       </h3>
 
       <div className="h-72">
