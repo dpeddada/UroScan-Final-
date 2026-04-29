@@ -36,7 +36,7 @@ export default function ColorChart({ data = [] }) {
   return (
     <Card className="p-5 border border-border bg-white">
       <h3 className="text-center text-base font-semibold mb-3 text-black">
-        Color Sensor Intensity vs Wavelength
+        Spectral Signature
       </h3>
 
       <div className="h-72">
