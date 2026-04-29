@@ -1,111 +1,166 @@
-// ONLY showing the changed parts to keep this readable
-// (everything else stays exactly the same)
+let device = null;
+let server = null;
+let service = null;
+let txCharacteristic = null;
+let lineBuffer = "";
+let notifyHandler = null;
 
-const [chartData, setChartData] = useState([]);
-const [spectralData, setSpectralData] = useState([]);
+const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const TX_CHAR_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
-// ---------------- DEMO MODE ----------------
-const addDemoPoint = () => {
-  const time = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+function parseKeyValueLine(line, prefix) {
+  if (!line || !line.startsWith(prefix)) return null;
 
-  const flowRate = 2.5 + (Math.random() - 0.5) * 1.8;
-  const peakFlowRate = flowRate + 0.8 + Math.random() * 1.4;
-  const turbidity = 45 + (Math.random() - 0.5) * 35;
-  const colorCode = Math.floor(Math.random() * 6);
+  const payload = line.slice(prefix.length);
+  const parts = payload.split(",");
+  const result = { lineType: prefix.replace(",", "") };
 
-  const spectralPoint = {
-    time,
-    F1_405: 45 + Math.random() * 30,
-    F2_425: 82 + Math.random() * 40,
-    FZ_450: 156 + Math.random() * 80,
-    F3_475: 61 + Math.random() * 40,
-    F4_515: 123 + Math.random() * 60,
-    F5_550: 49 + Math.random() * 30,
-    FY_555: 160 + Math.random() * 80,
-    FXL_600: 115 + Math.random() * 50,
-    F6_640: 62 + Math.random() * 35,
-    F7_690: 25 + Math.random() * 20,
-    F8_745: 3 + Math.random() * 8,
-    NIR_855: 3 + Math.random() * 8,
-  };
+  for (const part of parts) {
+    const eqIndex = part.indexOf("=");
+    if (eqIndex === -1) continue;
 
-  setSpectralData((prev) => [...prev.slice(-9), spectralPoint]);
+    const key = part.slice(0, eqIndex).trim();
+    const value = part.slice(eqIndex + 1).trim();
 
-  setChartData((prev) => {
-    const lastVolume = prev.length > 0 ? prev[prev.length - 1].volume : 0;
-    const volume = lastVolume + flowRate * 20 + Math.random() * 20;
-
-    return [
-      ...prev.slice(-59),
-      {
-        time,
-        flowRate,
-        peakFlowRate,
-        volume,
-        turbidity,
-        colorCode,
-      },
-    ];
-  });
-};
-
-// ---------------- REAL DATA ----------------
-await startReading((parsed) => {
-  const time = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-
-  // 🔴 HANDLE SPECTRAL DATA
-  if (parsed.lineType === "SPECTRAL") {
-    setSpectralData((prev) => [
-      ...prev.slice(-9),
-      {
-        time,
-        F1_405: Number(parsed.F1_405 || 0),
-        F2_425: Number(parsed.F2_425 || 0),
-        FZ_450: Number(parsed.FZ_450 || 0),
-        F3_475: Number(parsed.F3_475 || 0),
-        F4_515: Number(parsed.F4_515 || 0),
-        F5_550: Number(parsed.F5_550 || 0),
-        FY_555: Number(parsed.FY_555 || 0),
-        FXL_600: Number(parsed.FXL_600 || 0),
-        F6_640: Number(parsed.F6_640 || 0),
-        F7_690: Number(parsed.F7_690 || 0),
-        F8_745: Number(parsed.F8_745 || 0),
-        NIR_855: Number(parsed.NIR_855 || 0),
-      },
-    ]);
-    return;
+    result[key] = value;
   }
 
-  // 🟢 NORMAL DATA (UNCHANGED)
-  const volume = parseFloat(parsed.volume_ml);
-  const flowRate = parseFloat(parsed.flow_rate_mLs);
-  const turbidity = parseFloat(parsed.turbidity_rntu);
-  const colorCode = parseInt(parsed.color_code, 10);
-  const flowFlag = String(parsed.motion_flag) === "1";
+  return result;
+}
 
-  const safeVolume = Number.isFinite(volume) ? volume : 0;
-  const safeFlowRate = Number.isFinite(flowRate) ? flowRate : 0;
-  const safePeakFlowRate = safeFlowRate * 1.25;
-  const safeTurbidity = Number.isFinite(turbidity) ? turbidity : 0;
-  const safeColorCode = Number.isFinite(colorCode) ? colorCode : 0;
+function parseIncomingLine(line) {
+  if (line.startsWith("DATA,")) {
+    return parseKeyValueLine(line, "DATA,");
+  }
 
-  setChartData((prev) => [
-    ...prev.slice(-59),
-    {
-      time,
-      flowRate: safeFlowRate,
-      peakFlowRate: safePeakFlowRate,
-      volume: safeVolume,
-      turbidity: safeTurbidity,
-      colorCode: safeColorCode,
-    },
-  ]);
-});
+  if (line.startsWith("SPECTRAL,")) {
+    return parseKeyValueLine(line, "SPECTRAL,");
+  }
+
+  return null;
+}
+
+export async function connectESP32() {
+  try {
+    if (!navigator.bluetooth) {
+      throw new Error("Web Bluetooth is not supported in this browser.");
+    }
+
+    if (device && device.gatt && device.gatt.connected && txCharacteristic) {
+      return device;
+    }
+
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: "Uro" }],
+      optionalServices: [SERVICE_UUID],
+    });
+
+    device.addEventListener("gattserverdisconnected", () => {
+      server = null;
+      service = null;
+      txCharacteristic = null;
+      notifyHandler = null;
+      lineBuffer = "";
+      console.log("ESP32 Bluetooth disconnected.");
+    });
+
+    server = await device.gatt.connect();
+    service = await server.getPrimaryService(SERVICE_UUID);
+    txCharacteristic = await service.getCharacteristic(TX_CHAR_UUID);
+
+    lineBuffer = "";
+    return device;
+  } catch (error) {
+    console.error("connectESP32 error:", error);
+    throw error;
+  }
+}
+
+export async function startReading(onParsedData) {
+  try {
+    if (!txCharacteristic) {
+      throw new Error("Bluetooth device not connected.");
+    }
+
+    if (notifyHandler) {
+      txCharacteristic.removeEventListener(
+        "characteristicvaluechanged",
+        notifyHandler
+      );
+    }
+
+    lineBuffer = "";
+
+    notifyHandler = function (event) {
+      const value = event.target.value;
+      const chunk = new TextDecoder().decode(value);
+
+      lineBuffer += chunk;
+
+      const lines = lineBuffer.split(/\r?\n/);
+      lineBuffer = lines.pop() || "";
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+
+        const parsed = parseIncomingLine(line);
+
+        if (parsed) {
+          onParsedData(parsed);
+        }
+      }
+    };
+
+    await txCharacteristic.startNotifications();
+
+    txCharacteristic.addEventListener(
+      "characteristicvaluechanged",
+      notifyHandler
+    );
+  } catch (error) {
+    console.error("startReading error:", error);
+    throw error;
+  }
+}
+
+export async function stopReading() {
+  try {
+    if (txCharacteristic && notifyHandler) {
+      txCharacteristic.removeEventListener(
+        "characteristicvaluechanged",
+        notifyHandler
+      );
+
+      try {
+        await txCharacteristic.stopNotifications();
+      } catch (error) {
+        console.warn("Notifications may already be stopped:", error);
+      }
+
+      notifyHandler = null;
+      lineBuffer = "";
+    }
+  } catch (error) {
+    console.error("stopReading error:", error);
+  }
+}
+
+export async function disconnectESP32() {
+  try {
+    await stopReading();
+
+    if (device && device.gatt && device.gatt.connected) {
+      device.gatt.disconnect();
+    }
+
+    device = null;
+    server = null;
+    service = null;
+    txCharacteristic = null;
+    notifyHandler = null;
+    lineBuffer = "";
+  } catch (error) {
+    console.error("disconnectESP32 error:", error);
+  }
+}
