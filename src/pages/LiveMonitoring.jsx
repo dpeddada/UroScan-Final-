@@ -77,12 +77,32 @@ export default function LiveMonitoring() {
         const volume = lastVolume + flowRate * 20 + Math.random() * 20;
 
         const point = {
+          lineType: "DATA",
           time,
           flowRate,
           peakFlowRate,
           volume,
           turbidity,
           colorCode,
+        };
+
+        const spectralPoint = {
+          lineType: "SPECTRAL",
+          time,
+          F1_405: 45 + Math.random() * 30,
+          F2_425: 82 + Math.random() * 40,
+          FZ_450: 156 + Math.random() * 80,
+          F3_475: 61 + Math.random() * 40,
+          F4_515: 123 + Math.random() * 60,
+          F5_550: 49 + Math.random() * 30,
+          FY_555: 160 + Math.random() * 80,
+          FXL_600: 115 + Math.random() * 50,
+          F6_640: 62 + Math.random() * 35,
+          F7_690: 25 + Math.random() * 20,
+          F8_745: 3 + Math.random() * 8,
+          NIR_855: 3 + Math.random() * 8,
+          YI: 1.026,
+          RI: 0.504,
         };
 
         setCurrentReadings({
@@ -95,7 +115,7 @@ export default function LiveMonitoring() {
           status: "DEMO",
         });
 
-        return [...prev.slice(-59), point];
+        return [...prev.slice(-58), point, spectralPoint];
       });
 
       setIsFlowing(true);
@@ -143,6 +163,32 @@ export default function LiveMonitoring() {
           second: "2-digit",
         });
 
+        if (parsed.lineType === "SPECTRAL") {
+          setChartData((prev) => [
+            ...prev.slice(-59),
+            {
+              lineType: "SPECTRAL",
+              time,
+              F1_405: Number(parsed.F1_405 || 0),
+              F2_425: Number(parsed.F2_425 || 0),
+              FZ_450: Number(parsed.FZ_450 || 0),
+              F3_475: Number(parsed.F3_475 || 0),
+              F4_515: Number(parsed.F4_515 || 0),
+              F5_550: Number(parsed.F5_550 || 0),
+              FY_555: Number(parsed.FY_555 || 0),
+              FXL_600: Number(parsed.FXL_600 || 0),
+              F6_640: Number(parsed.F6_640 || 0),
+              F7_690: Number(parsed.F7_690 || 0),
+              F8_745: Number(parsed.F8_745 || 0),
+              NIR_855: Number(parsed.NIR_855 || 0),
+              YI: Number(parsed.YI || 0),
+              RI: Number(parsed.RI || 0),
+            },
+          ]);
+
+          return;
+        }
+
         const volume = parseFloat(parsed.volume_ml);
         const flowRate = parseFloat(parsed.flow_rate_mLs);
         const turbidity = parseFloat(parsed.turbidity_rntu);
@@ -171,6 +217,7 @@ export default function LiveMonitoring() {
         setChartData((prev) => [
           ...prev.slice(-59),
           {
+            lineType: "DATA",
             time,
             flowRate: safeFlowRate,
             peakFlowRate: safePeakFlowRate,
@@ -235,29 +282,6 @@ export default function LiveMonitoring() {
           >
             Disconnect
           </button>
-
-          <div
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
-              isFlowing
-                ? "bg-success/10 border border-success/20"
-                : "bg-muted border border-border"
-            }`}
-          >
-            <div
-              className={`w-2.5 h-2.5 rounded-full ${
-                isFlowing
-                  ? "bg-success animate-live-pulse"
-                  : "bg-muted-foreground"
-              }`}
-            />
-            <span
-              className={`text-sm font-bold ${
-                isFlowing ? "text-success" : "text-muted-foreground"
-              }`}
-            >
-              {isFlowing ? "FLOW DETECTED" : "NO FLOW"}
-            </span>
-          </div>
         </div>
       </div>
 
