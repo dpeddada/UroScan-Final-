@@ -20,7 +20,9 @@ export default function Dashboard() {
     volume: "0.00 mL",
     flowState: "Idle",
     flowSub: "0.00 mL/s",
-    turbidity: "Label: A",
+    peakFlowRate: "0.00 mL/s",
+    turbidity: "Clear",
+    turbidityLabel: "Clear",
     turbiditySub: "0.0 rNTU",
     color: "NA",
     colorSub: "Code: -1",
@@ -34,6 +36,8 @@ export default function Dashboard() {
     bagFillSub: "~0.00 mL / 2,000 mL",
   });
 
+  const [alerts, setAlerts] = useState([]);
+  const [peakFlowRate, setPeakFlowRate] = useState(0);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isReading, setIsReading] = useState(false);
 
@@ -42,6 +46,61 @@ export default function Dashboard() {
       disconnectESP32();
     };
   }, []);
+
+  const cleanMessage = (message) => {
+    if (!message || message === "OK") return "No active alerts";
+
+    return message
+      .replaceAll("_", " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const buildAlerts = (parsed, time) => {
+    const newAlerts = [];
+
+    if (parsed.alert_turbidity === "1") {
+      newAlerts.push({
+        severity: "warning",
+        time,
+        message: "High Turbidity",
+      });
+    }
+
+    if (parsed.alert_color === "1") {
+      newAlerts.push({
+        severity: "warning",
+        time,
+        message: "Abnormal Color",
+      });
+    }
+
+    if (parsed.alert_flow === "1") {
+      newAlerts.push({
+        severity: "warning",
+        time,
+        message: "Flow Alert",
+      });
+    }
+
+    if (parsed.alert_motion === "1") {
+      newAlerts.push({
+        severity: "warning",
+        time,
+        message: "Motion Detected",
+      });
+    }
+
+    if (parsed.alert_message && parsed.alert_message !== "OK") {
+      newAlerts.push({
+        severity: parsed.alert_level === "WARNING" ? "warning" : "ok",
+        time,
+        message: cleanMessage(parsed.alert_message),
+      });
+    }
+
+    return newAlerts;
+  };
 
   const handleConnect = async () => {
     try {
@@ -72,6 +131,14 @@ export default function Dashboard() {
       setIsReading(true);
 
       await startReading((parsed) => {
+        if (parsed.lineType !== "DATA") return;
+
+        const time = new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+
         const volumeNum = parseFloat(parsed.volume_ml);
         const flowNum = parseFloat(parsed.flow_rate_mLs);
         const turbidityNum = parseFloat(parsed.turbidity_rntu);
@@ -79,11 +146,13 @@ export default function Dashboard() {
         const flowFlag = String(parsed.motion_flag) === "1";
         const statusText = parsed.status || "UNKNOWN";
 
-        const alerts = [];
-        if (statusText !== "OK") alerts.push("Telemetry issue");
-        if (flowFlag) alerts.push("Flow active");
-        if (parsed.turbidity_sat === "YES") alerts.push("Turbidity saturated");
-        if (parsed.turbidity_bdl === "YES") alerts.push("Below detection");
+        const safeFlow = Number.isFinite(flowNum) ? flowNum : 0;
+        const nextPeakFlow = Math.max(peakFlowRate, safeFlow);
+
+        setPeakFlowRate(nextPeakFlow);
+
+        const realAlerts = buildAlerts(parsed, time);
+        setAlerts(realAlerts);
 
         const fillPercent = Number.isFinite(volumeNum)
           ? Math.max(0, Math.min(100, Math.round((volumeNum / 2000) * 100)))
@@ -102,9 +171,10 @@ export default function Dashboard() {
             ? `${flowNum.toFixed(2)} mL/s`
             : prev.flowSub,
 
-          turbidity: parsed.turbidity_label
-            ? `Label: ${parsed.turbidity_label}`
-            : prev.turbidity,
+          peakFlowRate: `${nextPeakFlow.toFixed(2)} mL/s`,
+
+          turbidity: parsed.turbidity_label || prev.turbidity,
+          turbidityLabel: parsed.turbidity_label || prev.turbidityLabel,
 
           turbiditySub: Number.isFinite(turbidityNum)
             ? `${turbidityNum.toFixed(1)} rNTU`
@@ -116,8 +186,11 @@ export default function Dashboard() {
             ? `Code: ${colorCode}`
             : prev.colorSub,
 
-          alerts: String(alerts.length),
-          alertsSub: alerts.length > 0 ? alerts.join(" • ") : "No active alerts",
+          alerts: String(realAlerts.length),
+          alertsSub:
+            realAlerts.length > 0
+              ? realAlerts.map((a) => a.message).join(" • ")
+              : "No active alerts",
 
           lastSync: "Just now",
           lastSyncSub: statusText,
@@ -151,6 +224,8 @@ export default function Dashboard() {
   const handleDisconnect = async () => {
     await disconnectESP32();
     setIsReading(false);
+    setAlerts([]);
+    setPeakFlowRate(0);
 
     setSummaryData((prev) => ({
       ...prev,
@@ -159,6 +234,9 @@ export default function Dashboard() {
       lastSyncSub: "BLE stopped",
       flowState: "Idle",
       flowSub: "0.00 mL/s",
+      peakFlowRate: "0.00 mL/s",
+      alerts: "0",
+      alertsSub: "No active alerts",
     }));
   };
 
@@ -227,7 +305,7 @@ export default function Dashboard() {
       <SummaryCards summaryData={summaryData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RecentAlertsTable />
+        <RecentAlertsTable alerts={alerts} />
         <PatientDeviceTable />
       </div>
     </div>
